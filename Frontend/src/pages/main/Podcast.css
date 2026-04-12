@@ -1,0 +1,145 @@
+.podcast-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 rem;
+    background: linear-gradient(135deg, #ffffff 0%, #f5f7fa 100%);
+    min-height: 100vh;
+  }
+  
+  .podcast-header {
+    text-align: center;
+    margin-bottom: 3rem;
+    padding: 2rem;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 15px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+  
+  .podcast-header h1 {
+    font-size: 2.5rem;
+    color: #2d3748;
+    margin-bottom: 1rem;
+  }
+  
+  .podcast-header p {
+    font-size: 1.2rem;
+    color: #4a5568;
+  }
+  
+  .podcast-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 2rem;
+  }
+  
+  .podcast-card {
+    background: white;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+  }
+  
+  .podcast-card:hover {
+    transform: translateY(-5px);
+  }
+  
+  .video-container {
+    position: relative;
+    padding-bottom: 56.25%; 
+    height: 0;
+  }
+  
+  .video-container iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+  }
+  
+  .podcast-info {
+    padding: 1.5rem;
+  }
+  
+  .podcast-info h2 {
+    font-size: 1.5rem;
+    color: #2d3748;
+    margin-bottom: 1rem;
+  }
+  
+  .meta-info {
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+    color: #4a5568;
+  }
+  
+  .meta-info p {
+    margin: 0.5rem 0;
+  }
+  
+  .description {
+    font-size: 1rem;
+    color: #718096;
+    line-height: 1.6;
+  }
+  
+  @media (max-width: 768px) {
+    .podcast-container {
+      padding: 1rem;
+    }
+    
+    .podcast-header {
+      padding: 1.5rem;
+    }
+    
+    .podcast-header h1 {
+      font-size: 2rem;
+    }
+    
+    .podcast-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+
+.series-toggle {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 3rem;
+  flex-wrap: wrap;
+}
+
+.series-toggle button {
+  padding: 0.8rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #ca0002;        
+  background: #ffffff;       
+  border: 2px solid #ca0002; 
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.series-toggle button:hover {
+  background: rgba(202, 0, 2, 0.1);
+}
+
+.series-toggle button.active {
+  background: #ca0002;       
+  color: #ffffff;            
+  box-shadow: 0 4px 8px rgba(202, 0, 2, 0.3); 
+}
+
+@media (max-width: 768px) {
+  .series-toggle {
+    margin-bottom: 2rem;
+  }
+  
+  .series-toggle button {
+    width: 100%; 
+    max-width: 300px;
+  }
+}
