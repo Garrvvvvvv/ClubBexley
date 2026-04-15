@@ -2,7 +2,7 @@
 
 /* Noise Background */
 .bg-noise {
-  background-color: #f8f6f3;
+  background-color: #000000;
   background-image: url('https://www.transparenttextures.com/patterns/noise.png');
   background-size: auto;
 }

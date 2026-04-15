@@ -12,30 +12,20 @@ import compression from "compression";
 
 /* ================== MODELS (REGISTER SCHEMAS) ================== */
 import "./models/Event.js";
-import "./models/Registration.js";
-import "./models/Controller.js";
 import "./models/Admin.js";
 import "./models/User.js";
 import "./models/Memory.js";
-import "./models/EventLock.js";
 import "./models/AdminLog.js";
-import "./models/Podcast.js";
 
 /* ================== ROUTES ================== */
 import googleAuthRoutes from "./routes/googleAuth.routes.js";
 import eventRoutes from "./routes/event.routes.js";
 import publicImagesRoutes from "./routes/publicImages.routes.js";
-import controllerAuthRoutes from "./routes/controllerAuth.routes.js"; // NEW
 import adminAuthRoutes from "./routes/adminAuth.routes.js";
 import adminEventRoutes from "./routes/adminEvent.routes.js";
-import adminControllerRoutes from "./routes/adminController.routes.js";
 import adminEventScopedRoutes from "./routes/adminEventScoped.routes.js";
 import adminGlobalGalleryRoutes from "./routes/adminGlobalGallery.routes.js";
-import controllerDashboardRoutes from "./routes/controllerDashboard.routes.js";
-import lockRoutes from "./routes/lock.routes.js";
 import adminLogsRoutes from "./routes/adminLogs.routes.js";
-import adminPodcastRoutes from "./routes/adminPodcast.routes.js";
-import publicPodcastRoutes from "./routes/publicPodcast.routes.js";
 
 /* ================== APP INIT ================== */
 const app = express();
@@ -93,25 +83,13 @@ app.use((req, _res, next) => {
 app.use("/api/auth", googleAuthRoutes);
 app.use("/api/events", eventRoutes);
 app.use("/api/images", publicImagesRoutes);
-app.use("/api/locks", lockRoutes);
-
-// Controller Auth
-app.use("/api/controller/auth", controllerAuthRoutes); // MOUNTED HERE
 
 // Admin
 app.use("/api/admin/auth", adminAuthRoutes);
 app.use("/api/admin/events", adminEventRoutes);
-app.use("/api/admin/controllers", adminControllerRoutes);
 app.use("/api/admin/images", adminGlobalGalleryRoutes);
 app.use("/api/admin/logs", adminLogsRoutes);
-app.use("/api/admin/podcasts", adminPodcastRoutes);
 app.use("/api/admin", adminEventScopedRoutes);
-
-// Public
-app.use("/api/podcasts", publicPodcastRoutes);
-
-// Controller
-app.use("/api/controller", controllerDashboardRoutes);
 
 /* ================== HEALTH CHECK ================== */
 app.get("/health", (_req, res) => {

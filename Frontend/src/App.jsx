@@ -1,56 +1,35 @@
-import React from "react";
-import { Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import "./App.css";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 /* ---------- Main Website Pages ---------- */
-import Home from "./pages/main/home";                  // ORIGINAL Home Page
-import EventList from "./pages/main/EventList";        // New Event Directory (Optional)
-import Registration from "./pages/main/registeration"; // New Registration Form
+import Home from "./pages/main/home";
+import EventList from "./pages/main/EventList";
 import EventFlow from "./pages/main/EventFlowpage.jsx";
-import PhotoGallery from "./pages/main/memories";      // Memories (Handles both Directory & Specific)
+import PhotoGallery from "./pages/main/memories";
 import UserLogin from "./pages/main/userlogin";
 import Meetourteam from "./pages/main/meetourteam";
-import MyRegistrations from "./pages/main/MyRegistrations";
 import MeetOurDevelopers from "./pages/main/MeetOurDevelopers";
-import Podcast from "./pages/main/podcast";
+import TripDetail from "./pages/main/TripDetail";
 
 /* ---------- Layouts ---------- */
-import ResponsiveAppBar from "./components/navbar.jsx";
+import Navbar from "./components/navbar.jsx";
 import Footer from "./components/footer.jsx";
 
 /* ---------- Auth Guards ---------- */
-import UserProtectedRoute from "./components/UserProtectedRoutes";
 import AdminProtectedRoute from "./components/ProtectedRoute.jsx";
 import { AdminEventProvider } from "./context/AdminEventContext";
-import { EventLockProvider, useEventLock } from "./context/EventLockContext";
-
-/* ---------- Lock Entry ---------- */
-import LockEntry from "./pages/LockEntry";
 
 /* ---------- Admin Pages ---------- */
 import Login from "./pages/Admin/Login.jsx";
 import Dashboard from "./pages/Admin/Dashboard.jsx";
-
 import AdminMemories from "./pages/Admin/AdminMemories.jsx";
-import AdminRegistrations from "./pages/Admin/Adminregisterations";
 import AdminEvents from "./pages/Admin/AdminEvents";
-import AdminControllers from "./pages/Admin/AdminControllers";
 import AdminSidebar from "./components/AdminSidebar.jsx";
-import AdminLockManager from "./pages/Admin/AdminLockManager.jsx";
 import AdminForgotPassword from "./pages/Admin/ForgotPassword.jsx";
 import AdminLogs from "./pages/Admin/AdminLogs.jsx";
 import AdminEmails from "./pages/Admin/AdminEmails.jsx";
-import AdminPodcasts from "./pages/Admin/AdminPodcasts.jsx";
-
-/* ---------- Event Controller ---------- */
-import EventControllerDashboard from "./pages/EventController/Dashboard";
-import ControllerLogin from "./pages/EventController/Login";
-import ControllerSignup from "./pages/EventController/Signup";
-import ControllerEventDetails from "./pages/EventController/EventDetails";
-import ControllerEventAnalytics from "./pages/EventController/EventAnalytics";
-import ControllerForgotPassword from "./pages/EventController/ForgotPassword";
 
 
 /* =========================================
@@ -61,7 +40,6 @@ function AdminLayout({ children }) {
     <div className="flex min-h-screen bg-white">
       <AdminSidebar />
       <div className="flex-1 w-full lg:w-auto relative overflow-hidden">
-        {/* Subtle red ambient blurs */}
         <div style={{
           position: "absolute",
           top: -100,
@@ -82,7 +60,6 @@ function AdminLayout({ children }) {
           borderRadius: "50%",
           pointerEvents: "none",
         }} />
-
         <div className="relative z-10 p-4 md:p-6 lg:p-8 pt-20 lg:pt-8 text-gray-800 min-h-screen overflow-y-auto">
           {children}
         </div>
@@ -91,161 +68,73 @@ function AdminLayout({ children }) {
   );
 }
 
-/* ---------- Loader ---------- */
-import Loader from "./components/Loader.jsx";
-
-/* =========================================
-   LOCK-AWARE ROUTE WRAPPER
-   ========================================= */
-function LockAwareRoute({ children }) {
-  const location = useLocation();
-  const navigate = useNavigate();
-  const { isLocked, isRouteAllowed, eventData, loading } = useEventLock();
-
-  React.useEffect(() => {
-    if (loading) return; // Wait for lock state to load
-
-    if (isLocked && !isRouteAllowed(location.pathname)) {
-      const target = `/event/${eventData?.slug}`;
-      // Prevent infinite loop: Don't redirect if we're already on target
-      if (location.pathname !== target && !location.pathname.startsWith(target + "/")) {
-        navigate(target, { replace: true });
-      }
-    }
-  }, [isLocked, location.pathname, isRouteAllowed, navigate, eventData, loading]);
-
-  if (loading) {
-    return <Loader />;
-  }
-
-  return children;
-}
 
 function App() {
   const location = useLocation();
 
-  // Hide navbar and footer on admin and controller routes
   const isAdminRoute = location.pathname.startsWith('/admin');
-  const isControllerRoute = location.pathname.startsWith('/controller');
-  const isLockEntryRoute = location.pathname.startsWith('/lock/');
-  const hideNavAndFooter = isAdminRoute || isControllerRoute || isLockEntryRoute;
+  const hideNavAndFooter = isAdminRoute;
 
   return (
-    <EventLockProvider>
-      {!hideNavAndFooter && <ResponsiveAppBar />}
+    <>
+      {!hideNavAndFooter && <Navbar />}
 
-      <div className={!hideNavAndFooter ? "pt-[90px]" : ""}>
-        <LockAwareRoute>
-          <Routes>
+      <div className={!hideNavAndFooter ? "pt-[90px]" : ""} style={!hideNavAndFooter ? { background: "#06060b", minHeight: "100vh" } : {}}>
+        <Routes>
 
-            {/* =========================================
-            1. PUBLIC USER ROUTES
-           ========================================= */}
+          {/* =========================================
+              PUBLIC ROUTES
+          ========================================= */}
+          <Route path="/" element={<Home />} />
+          <Route path="/home" element={<Home />} />
+          <Route path="/events" element={<EventList />} />
+          <Route path="/login" element={<UserLogin />} />
+          <Route path="/meetourteam" element={<Meetourteam />} />
+          <Route path="/meetourdevelopers" element={<MeetOurDevelopers />} />
 
-            {/* LOCK ENTRY ROUTE (Must be first) */}
-            <Route path="/lock/:token" element={<LockEntry />} />
+          <Route path="/eventFlow" element={<EventFlow />} />
+          <Route path="/event/:eventSlug/flow" element={<EventFlow />} />
 
-            {/* 1. ORIGINAL HOME PAGE (Restored) */}
-            <Route path="/" element={<Home />} />
-            <Route path="/home" element={<Home />} />
+          <Route path="/memories" element={<PhotoGallery />} />
+          <Route path="/events/memories" element={<PhotoGallery />} />
+          <Route path="/event/:eventSlug/memories" element={<PhotoGallery />} />
+          <Route path="/event/:eventSlug" element={<TripDetail />} />
 
-            {/* 2. EVENT DIRECTORY (The new list view) */}
-            <Route path="/events" element={<EventList />} />
+          {/* =========================================
+              ADMIN ROUTES
+          ========================================= */}
+          <Route path="/admin/login" element={<Login />} />
+          <Route path="/admin/forgot-password" element={<AdminForgotPassword />} />
 
-            {/* 3. STATIC PAGES */}
-            <Route path="/login" element={<UserLogin />} />
-            <Route path="/meetourteam" element={<Meetourteam />} />
-            <Route path="/meetourdevelopers" element={<MeetOurDevelopers />} />
+          <Route
+            path="/admin/*"
+            element={
+              <AdminProtectedRoute>
+                <AdminEventProvider>
+                  <AdminLayout>
+                    <Routes>
+                      <Route path="dashboard" element={<Dashboard />} />
+                      <Route path="events" element={<AdminEvents />} />
+                      <Route path="memories" element={<AdminMemories />} />
+                      <Route path="logs" element={<AdminLogs />} />
+                      <Route path="emails" element={<AdminEmails />} />
+                      <Route path="*" element={<Navigate to="dashboard" replace />} />
+                    </Routes>
+                  </AdminLayout>
+                </AdminEventProvider>
+              </AdminProtectedRoute>
+            }
+          />
 
-            {/* 4. TIMELINE (Two Modes) */}
-            <Route path="/eventFlow" element={<EventFlow />} />             {/* Navbar Link -> Directory */}
-            <Route path="/event/:eventSlug/flow" element={<EventFlow />} /> {/* Specific Event */}
+          {/* Global Fallback */}
+          <Route path="*" element={<Navigate to="/" replace />} />
 
-            {/* 5. MEMORIES (Two Modes) */}
-            <Route path="/memories" element={<PhotoGallery />} />               {/* Navbar Link -> Directory */}
-            <Route path="/events/memories" element={<PhotoGallery />} />        {/* Directory Alias */}
-            <Route path="/event/:eventSlug/memories" element={<PhotoGallery />} /> {/* Specific Event */}
-
-            {/* 6. REGISTRATION (Protected) */}
-            <Route
-              path="/event/:eventSlug/register"
-              element={
-                <UserProtectedRoute>
-                  <Registration />
-                </UserProtectedRoute>
-              }
-            />
-            {/* Legacy redirect: Send /register to the events list so user can pick an event */}
-            <Route path="/register" element={<Navigate to="/events" replace />} />
-
-            {/* 7. MY REGISTRATIONS (New Dashboard) */}
-            <Route
-              path="/my-registrations"
-              element={
-                <UserProtectedRoute>
-                  <MyRegistrations />
-                </UserProtectedRoute>
-              }
-            />
-            <Route
-              path="/Podcasts"
-              element={
-                <Podcast />
-              }
-            />
-
-
-            {/* =========================================
-            2. ADMIN ROUTES
-           ========================================= */}
-            <Route path="/admin/login" element={<Login />} />
-            <Route path="/admin/forgot-password" element={<AdminForgotPassword />} />
-
-            <Route
-              path="/admin/*"
-              element={
-                <AdminProtectedRoute>
-                  <AdminEventProvider>
-                    <AdminLayout>
-                      <Routes>
-                        <Route path="dashboard" element={<Dashboard />} />
-                        <Route path="events" element={<AdminEvents />} />
-                        <Route path="registrations" element={<AdminRegistrations />} />
-                        <Route path="memories" element={<AdminMemories />} />
-                        {/* <Route path="rooms" element={<AdminRooms />} /> REMOVED */}
-                        <Route path="controllers" element={<AdminControllers />} />
-
-                        <Route path="locks" element={<AdminLockManager />} />
-                        <Route path="logs" element={<AdminLogs />} />
-                        <Route path="emails" element={<AdminEmails />} />
-                        <Route path="podcasts" element={<AdminPodcasts />} />
-                        {/* Fallback for admin */}
-                        <Route path="*" element={<Navigate to="dashboard" replace />} />
-                      </Routes>
-                    </AdminLayout>
-                  </AdminEventProvider>
-                </AdminProtectedRoute>
-              }
-            />
-
-            {/* 3. EVENT CONTROLLER (STAFF) */}
-            <Route path="/controller/login" element={<ControllerLogin />} />
-            <Route path="/controller/signup" element={<ControllerSignup />} />
-            <Route path="/controller/forgot-password" element={<ControllerForgotPassword />} />
-            <Route path="/controller/dashboard" element={<EventControllerDashboard />} />
-            <Route path="/controller/events/:eventId" element={<ControllerEventDetails />} />
-            <Route path="/controller/events/:eventId/analytics" element={<ControllerEventAnalytics />} />
-
-            {/* Global Fallback */}
-            <Route path="*" element={<Navigate to="/" replace />} />
-
-          </Routes>
-        </LockAwareRoute>
+        </Routes>
       </div>
 
       {!hideNavAndFooter && <Footer />}
       <ToastContainer position="top-right" autoClose={3000} />
-    </EventLockProvider>
+    </>
   );
 }
 

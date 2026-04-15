@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom";
 import { useAdminEvent } from "../context/AdminEventContext";
-import { FaBars, FaTimes, FaHome, FaCalendar, FaUsers, FaImages, FaUserShield, FaSignOutAlt, FaLink, FaHistory, FaEnvelope, FaPodcast } from "react-icons/fa";
+import { FaBars, FaTimes, FaHome, FaCalendar, FaImages, FaSignOutAlt, FaHistory, FaEnvelope } from "react-icons/fa";
 
 export default function AdminSidebar() {
   const { events, activeEvent, setActiveEvent } = useAdminEvent();
@@ -179,12 +179,8 @@ export default function AdminSidebar() {
           {[
             { to: "/admin/dashboard", icon: FaHome, label: "Dashboard" },
             { to: "/admin/events", icon: FaCalendar, label: "Events" },
-            { to: "/admin/registrations", icon: FaUsers, label: "Registrations" },
             { to: "/admin/memories", icon: FaImages, label: "Photos" },
-            { to: "/admin/controllers", icon: FaUserShield, label: "Controllers" },
-            { to: "/admin/locks", icon: FaLink, label: "Event Locks" },
             { to: "/admin/emails", icon: FaEnvelope, label: "Email Tracking" },
-            { to: "/admin/podcasts", icon: FaPodcast, label: "Podcasts" },
             { to: "/admin/logs", icon: FaHistory, label: "Audit Logs" },
           ].map(({ to, icon: Icon, label }) => (
             <NavLink

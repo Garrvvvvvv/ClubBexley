@@ -7,18 +7,9 @@ const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
     user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS, // App password if using Gmail
+    pass: process.env.SMTP_PASS,
   },
 });
-
-const approval_transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.HEAD_SMTP_USER,
-    pass: process.env.HEAD_SMTP_PASS,
-  }
-
-})
 
 export const sendOtpEmail = async (toEmail, otp) => {
   try {
@@ -78,10 +69,10 @@ export const sendAdminOtpEmail = async (toEmail, otp) => {
                 <h2 style="color: #1a1a1a; margin: 0; font-size: 24px; text-transform: uppercase; letter-spacing: 1px;">Security Alert</h2>
                 <p style="color: #CA0002; font-weight: 600; margin-top: 5px;">Admin Gateway Recovery</p>
               </div>
-              
+
               <div style="background-color: #fafafa; border-left: 4px solid #CA0002; padding: 15px 20px; margin-bottom: 25px;">
                 <p style="margin: 0; color: #444; font-size: 15px; line-height: 1.6;">
-                  An authentication recovery request was initiated for your ARC Administrative privileges. 
+                  An authentication recovery request was initiated for your ARC Administrative privileges.
                   To verify your identity and authorize this password reset, please use the secure code below.
                 </p>
               </div>
@@ -104,7 +95,7 @@ export const sendAdminOtpEmail = async (toEmail, otp) => {
                 </p>
               </div>
             </div>
-            
+
             <div style="background-color: #1a1a1a; padding: 20px; text-align: center;">
               <p style="font-size: 11px; color: #888; margin: 0; text-transform: uppercase; letter-spacing: 1px;">
                 ARC Alumni Events System • Authorized Personnel Only
@@ -120,157 +111,6 @@ export const sendAdminOtpEmail = async (toEmail, otp) => {
     return true;
   } catch (error) {
     console.error("Error sending Admin OTP email:", error);
-    return false;
-  }
-};
-
-/**
- * Send registration approval notification to the registrant.
- */
-export const sendApprovalEmail = async (toEmail, reg, event) => {
-  try {
-    const approvalDate = new Date(reg.approvedAt || Date.now()).toLocaleString("en-IN", {
-      day: "2-digit", month: "long", year: "numeric",
-      hour: "2-digit", minute: "2-digit", hour12: true, timeZone: "Asia/Kolkata"
-    });
-
-    const familySection = reg.familyMembers && reg.familyMembers.length > 0
-      ? `<tr>
-          <td style="padding:10px 0;border-bottom:1px solid #f0f0f0;color:#555;font-size:14px;width:40%">Family Members</td>
-          <td style="padding:10px 0;border-bottom:1px solid #f0f0f0;font-weight:600;font-size:14px;">
-            ${reg.familyMembers.map(fm => `${fm.name} <span style="color:#888;font-size:12px;">(${fm.relation})</span>`).join("<br/>")}
-          </td>
-        </tr>`
-      : "";
-
-    const mailOptions = {
-      from: `"Alumni Events TIET" <${process.env.HEAD_SMTP_USER}>`,
-      replyTo: "headalumni@thapar.edu",
-      to: toEmail,
-      subject: `Registration Approved — ${event.name} | ARC Thapar`,
-      html: `
-<table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0;padding:0;background:#ffffff;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;">
-<tr>
-<td align="center">
-
-<table width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:640px;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,0.08);">
-
-<tr>
-<td style="padding:28px 20px;">
-
-<p style="font-size:16px;color:#333;margin:0 0 10px;">
-Dear <strong>${reg.name}</strong>,
-</p>
-
-<p style="font-size:15px;color:#555;line-height:1.6;margin:0 0 20px;">
-We are pleased to inform you that your registration for 
-<strong>${event.name}</strong> has been 
-<span style="color:#CA0002;font-weight:700;">successfully approved</span>.
-</p>
-
-<p style="font-size:15px;color:#333;line-height:1.7;margin:0 0 24px;">
-We encourage you to reconnect with your batchmates and fellow alumni by inviting them to participate in this event. 
-Alumni gatherings are a wonderful opportunity to strengthen professional and personal connections within the Thapar community.
-</p>
-
-<table width="100%" cellpadding="0" cellspacing="0" style="background:#fafafa;border:1px solid #eee;border-radius:10px;padding:18px;margin-bottom:24px;">
-<tr>
-<td>
-
-<p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#888;margin:0 0 14px;">
-Registration Details
-</p>
-
-<table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
-
-<tr>
-<td style="padding:10px 0;border-bottom:1px solid #f0f0f0;color:#555;font-size:14px;width:40%;">Event</td>
-<td style="padding:10px 0;border-bottom:1px solid #f0f0f0;font-weight:700;font-size:14px;color:#CA0002;">${event.name}</td>
-</tr>
-
-<tr>
-<td style="padding:10px 0;border-bottom:1px solid #f0f0f0;color:#555;font-size:14px;">Name</td>
-<td style="padding:10px 0;border-bottom:1px solid #f0f0f0;font-weight:600;font-size:14px;">${reg.name}</td>
-</tr>
-
-<tr>
-<td style="padding:10px 0;border-bottom:1px solid #f0f0f0;color:#555;font-size:14px;">Batch</td>
-<td style="padding:10px 0;border-bottom:1px solid #f0f0f0;font-weight:600;font-size:14px;">${reg.batch || "N/A"}</td>
-</tr>
-
-<tr>
-<td style="padding:10px 0;border-bottom:1px solid #f0f0f0;color:#555;font-size:14px;">Contact</td>
-<td style="padding:10px 0;border-bottom:1px solid #f0f0f0;font-weight:600;font-size:14px;">${reg.contact || reg.mobile || "N/A"}</td>
-</tr>
-
-<tr>
-<td style="padding:10px 0;border-bottom:1px solid #f0f0f0;color:#555;font-size:14px;">Registration Type</td>
-<td style="padding:10px 0;border-bottom:1px solid #f0f0f0;font-weight:600;font-size:14px;">
-${reg.familyMembers && reg.familyMembers.length > 0 ? `Family (${reg.familyMembers.length + 1} members)` : "Individual"}
-</td>
-</tr>
-
-${familySection}
-
-<tr>
-<td style="padding:10px 0;border-bottom:1px solid #f0f0f0;color:#555;font-size:14px;">Amount Paid</td>
-<td style="padding:10px 0;border-bottom:1px solid #f0f0f0;font-weight:700;font-size:14px;color:#16a34a;">&#8377;${reg.amount || 0}</td>
-</tr>
-
-<tr>
-<td style="padding:10px 0;color:#555;font-size:14px;">Approved On</td>
-<td style="padding:10px 0;font-weight:600;font-size:14px;">${approvalDate} IST</td>
-</tr>
-
-</table>
-</td>
-</tr>
-</table>
-
-<table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:20px;">
-<tr>
-<td style="background:#fff8f8;border-left:4px solid #CA0002;padding:14px 16px;border-radius:0 8px 8px 0;">
-<p style="margin:0;font-size:13px;color:#555;line-height:1.6;">
-📌 Please retain this email as confirmation of your approved registration. 
-You may be required to present it at the event venue.
-For any queries, contact us at <strong>headalumni@thapar.edu</strong>.
-</p>
-</td>
-</tr>
-</table>
-
-<p style="font-size:15px;color:#333;margin:0;">
-We look forward to welcoming you to the event.<br/>
-<span style="color:#888;font-size:13px;">— Alumni Relations Office</span>
-</p>
-
-</td>
-</tr>
-
-<tr>
-<td style="background:#1a1a1a;padding:18px;text-align:center;">
-<p style="color:#888;font-size:11px;margin:0;text-transform:uppercase;letter-spacing:1px;">
-ARC Alumni Events • Thapar Institute of Engineering & Technology
-</p>
-<p style="color:#555;font-size:10px;margin:6px 0 0;">
-alumnievents.thapar.edu
-</p>
-</td>
-</tr>
-
-</table>
-
-</td>
-</tr>
-</table>
-`
-
-    };
-    const info = await approval_transporter.sendMail(mailOptions);
-    console.log("Approval Email sent:", info.response);
-    return true;
-  } catch (error) {
-    console.error("Error sending approval email:", error);
     return false;
   }
 };

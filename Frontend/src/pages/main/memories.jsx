@@ -1,16 +1,14 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useParams } from "react-router-dom";
 import Masonry from "react-masonry-css";
-import { X, ChevronLeft, ChevronRight, ArrowLeft, Image as ImageIcon } from "lucide-react";
+import { X, ChevronLeft, ChevronRight, Image as ImageIcon } from "lucide-react";
 import { apiUser } from "../../lib/apiUser";
 import LazyImage from "../../components/LazyImage";
-import { useEventLock } from "../../context/EventLockContext";
 
 const PAGE_SIZE = 24;
 
 export default function PhotoGallery() {
   const { eventSlug } = useParams();
-  const { isLocked, eventData } = useEventLock();
 
   // --- STATE: MODE SWITCHING ---
   // If null, show Event List. If set, show Gallery for that event.
@@ -18,17 +16,12 @@ export default function PhotoGallery() {
   const [eventsList, setEventsList] = useState([]);
   const [isLoadingEvents, setIsLoadingEvents] = useState(true);
 
-  // Auto-select event if locked or slug provided
+  // Auto-select event if slug provided in URL
   useEffect(() => {
-    if (isLocked && eventData) {
-      setSelectedEvent(eventData);
-    } else if (eventSlug && !selectedEvent) {
-      // If valid slug in URL but not locked (direct access), set minimal event data
-      // We might want to fetch full details, but for now assuming slug is enough or finding from list
+    if (eventSlug && !selectedEvent) {
       setSelectedEvent({ slug: eventSlug, name: "Event Memories" });
-      // Note: fetching full details for name would be better, but this solves the immediate navigation
     }
-  }, [isLocked, eventData, eventSlug]);
+  }, [eventSlug]);
 
   // --- STATE: GALLERY INTERNALS ---
   const [photos, setPhotos] = useState([]);
@@ -190,42 +183,130 @@ export default function PhotoGallery() {
   // =========================================================
   if (!selectedEvent) {
     return (
-      <div className="min-h-screen bg-gray-50 p-6 md:p-12 pt-24">
-        <div className="max-w-7xl mx-auto">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2 font-serif">Event <span className="text-[#8B0000]">Memories</span></h1>
-          <p className="text-gray-500 mb-12">Select an event to view its photo gallery.</p>
+      <div style={{ minHeight: "100vh", background: "#06060b", padding: "0 0 80px", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+        <style>{`
+          @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+          .mem-dir-orb-l {
+            position: fixed; left: -200px; top: 30%; width: 500px; height: 500px;
+            border-radius: 50%; pointer-events: none; z-index: 0;
+            background: radial-gradient(circle, rgba(255,77,0,0.07) 0%, transparent 70%);
+          }
+          .mem-dir-orb-r {
+            position: fixed; right: -160px; top: 10%; width: 420px; height: 420px;
+            border-radius: 50%; pointer-events: none; z-index: 0;
+            background: radial-gradient(circle, rgba(255,196,71,0.05) 0%, transparent 70%);
+          }
+          .mem-dir-inner { position: relative; z-index: 1; max-width: 1400px; margin: 0 auto; padding: 40px 32px 0; }
+          .mem-dir-eyebrow {
+            display: inline-flex; align-items: center; gap: 8px;
+            font-size: 10px; font-weight: 700; letter-spacing: 3.5px;
+            text-transform: uppercase; color: #888898; margin-bottom: 14px;
+          }
+          .mem-dir-eyebrow-dot {
+            width: 6px; height: 6px; border-radius: 50%; background: #ff4d00;
+            box-shadow: 0 0 8px #ff4d00; animation: memDotPulse 2.5s infinite;
+          }
+          @keyframes memDotPulse {
+            0%,100% { box-shadow: 0 0 5px #ff4d00; }
+            50%      { box-shadow: 0 0 14px #ff4d00, 0 0 24px rgba(255,77,0,0.4); }
+          }
+          .mem-dir-title {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: clamp(48px, 8vw, 96px);
+            line-height: 0.9; letter-spacing: 3px; color: #f0ece4; margin-bottom: 12px;
+          }
+          .mem-dir-title span {
+            background: linear-gradient(135deg, #ff4d00, #ffc447);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+          }
+          .mem-dir-sub { font-size: 14px; color: #888898; margin-bottom: 52px; }
+          .mem-dir-grid {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px;
+          }
+          @media (max-width: 1023px) { .mem-dir-grid { grid-template-columns: repeat(2, 1fr); } }
+          @media (max-width: 599px)  { .mem-dir-grid { grid-template-columns: 1fr; } }
+
+          .mem-dir-card {
+            background: #0d0d16; border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 16px; overflow: hidden; cursor: pointer;
+            transition: border-color 0.3s, transform 0.3s, box-shadow 0.3s;
+          }
+          .mem-dir-card:hover {
+            border-color: rgba(255,77,0,0.35);
+            transform: translateY(-5px);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5), 0 0 30px rgba(255,77,0,0.08);
+          }
+          .mem-dir-img-wrap { height: 200px; background: #121220; position: relative; overflow: hidden; }
+          .mem-dir-img-wrap img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.6s ease; }
+          .mem-dir-card:hover .mem-dir-img-wrap img { transform: scale(1.07); }
+          .mem-dir-img-grad {
+            position: absolute; inset: 0;
+            background: linear-gradient(to top, rgba(6,6,11,0.85) 0%, transparent 55%);
+          }
+          .mem-dir-placeholder {
+            width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: #3a3a50;
+          }
+          .mem-dir-info { padding: 18px 20px; }
+          .mem-dir-name {
+            font-size: 15px; font-weight: 700; color: #f0ece4; margin-bottom: 6px;
+            transition: color 0.2s;
+          }
+          .mem-dir-card:hover .mem-dir-name { color: #ff6a1a; }
+          .mem-dir-cta {
+            font-size: 11px; font-weight: 600; letter-spacing: 1.5px;
+            text-transform: uppercase; color: #3a3a50; transition: color 0.2s;
+            display: flex; align-items: center; gap: 6px;
+          }
+          .mem-dir-card:hover .mem-dir-cta { color: #ff4d00; }
+          .mem-empty {
+            border: 1px dashed rgba(255,255,255,0.08); border-radius: 20px;
+            padding: 80px 20px; text-align: center; color: #3a3a50; font-size: 14px;
+          }
+          .mem-loading { color: #ff4d00; font-size: 13px; display: flex; align-items: center; gap: 10px; }
+          .mem-loading-spinner {
+            width: 18px; height: 18px; border: 2px solid rgba(255,77,0,0.2);
+            border-top-color: #ff4d00; border-radius: 50%;
+            animation: memSpin 0.8s linear infinite;
+          }
+          @keyframes memSpin { to { transform: rotate(360deg); } }
+        `}</style>
+
+        <div className="mem-dir-orb-l" />
+        <div className="mem-dir-orb-r" />
+
+        <div className="mem-dir-inner">
+          <div className="mem-dir-eyebrow">
+            <span className="mem-dir-eyebrow-dot" />
+            Gallery
+          </div>
+          <h1 className="mem-dir-title">
+            MOMENTS<br /><span>THAT MATTER</span>
+          </h1>
+          <p className="mem-dir-sub">Select a trip to relive the memories.</p>
 
           {isLoadingEvents ? (
-            <div className="text-[#ca0002] animate-pulse">Loading events...</div>
-          ) : eventsList.length === 0 ? (
-            <div className="text-gray-400 text-center py-20 border border-gray-200 border-dashed rounded-[24px] bg-white">
-              No events found.
+            <div className="mem-loading">
+              <div className="mem-loading-spinner" /> Loading trips...
             </div>
+          ) : eventsList.length === 0 ? (
+            <div className="mem-empty">No trips found yet — check back soon.</div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div className="mem-dir-grid">
               {eventsList.map((ev) => (
-                <div
-                  key={ev._id}
-                  onClick={() => setSelectedEvent(ev)}
-                  className="group bg-white rounded-[10px] overflow-hidden border border-gray-100 cursor-pointer hover:border-[#ca0002]/30 hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] transition-all duration-300"
-                >
-                  <div className="h-48 bg-gray-100 relative overflow-hidden">
+                <div key={ev._id} className="mem-dir-card" onClick={() => setSelectedEvent(ev)}>
+                  <div className="mem-dir-img-wrap">
                     {ev.posterUrl ? (
-                      <img
-                        src={ev.posterUrl}
-                        alt={ev.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition duration-500 ease-out"
-                      />
+                      <img src={ev.posterUrl} alt={ev.name} />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center text-gray-300">
-                        <ImageIcon className="w-12 h-12 opacity-50" />
+                      <div className="mem-dir-placeholder">
+                        <ImageIcon size={40} strokeWidth={1} />
                       </div>
                     )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-gray-900/60 to-transparent opacity-60"></div>
+                    <div className="mem-dir-img-grad" />
                   </div>
-                  <div className="p-5">
-                    <h3 className="font-bold text-gray-900 text-lg mb-1 group-hover:text-[#ca0002] transition font-arial">{ev.name}</h3>
-                    <p className="text-xs text-gray-400 font-mono group-hover:text-[#ca0002] transition">View Gallery &rarr;</p>
+                  <div className="mem-dir-info">
+                    <p className="mem-dir-name">{ev.name}</p>
+                    <p className="mem-dir-cta">View Gallery <span>→</span></p>
                   </div>
                 </div>
               ))}
@@ -240,22 +321,83 @@ export default function PhotoGallery() {
   // VIEW 2: PHOTO GALLERY (Masonry)
   // =========================================================
   return (
-    <div className="min-h-screen bg-gray-50 pt-20">
-      {/* Header Removed as requested - no back button, no title */}
+    <div style={{ minHeight: "100vh", background: "#06060b", paddingTop: 16, paddingBottom: 80, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+      <style>{`
+        .mem-tile-wrap {
+          margin-bottom: 12px; overflow: hidden; border-radius: 12px;
+          cursor: pointer; position: relative;
+          border: 1px solid rgba(255,255,255,0.04);
+          transition: transform 0.3s cubic-bezier(0.23,1,0.32,1), box-shadow 0.3s, border-color 0.3s;
+        }
+        .mem-tile-wrap:hover {
+          transform: scale(1.025);
+          box-shadow: 0 12px 40px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,77,0,0.2);
+          border-color: rgba(255,77,0,0.2);
+        }
+        .mem-tile-wrap img { display: block; width: 100%; height: auto; object-fit: cover; border-radius: 12px; }
+        .mem-tile-hover {
+          position: absolute; inset: 0; border-radius: 12px;
+          background: linear-gradient(to top, rgba(255,77,0,0.18) 0%, transparent 60%);
+          opacity: 0; transition: opacity 0.3s;
+        }
+        .mem-tile-wrap:hover .mem-tile-hover { opacity: 1; }
+
+        .mem-empty-dark {
+          border: 1px dashed rgba(255,255,255,0.08); border-radius: 20px;
+          padding: 80px 20px; text-align: center; color: #3a3a50; font-size: 14px;
+          margin: 0 16px;
+        }
+        .mem-load-more {
+          text-align: center; padding: 40px 0;
+          font-size: 11px; letter-spacing: 2px; text-transform: uppercase;
+          color: #3a3a50; animation: pulse 2s infinite;
+        }
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+        /* Lightbox */
+        .mem-lb-overlay {
+          position: fixed; inset: 0; z-index: 200;
+          background: rgba(4,4,8,0.97); backdrop-filter: blur(20px);
+          display: flex; align-items: center; justify-content: center; padding: 16px;
+        }
+        .mem-lb-close {
+          position: absolute; top: 20px; right: 20px; z-index: 10;
+          background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+          color: #888898; border-radius: 10px; padding: 8px;
+          cursor: pointer; transition: all 0.2s; display: flex; align-items: center;
+        }
+        .mem-lb-close:hover { background: rgba(255,77,0,0.12); border-color: rgba(255,77,0,0.3); color: #ff4d00; }
+        .mem-lb-nav {
+          position: absolute; top: 50%; transform: translateY(-50%); z-index: 10;
+          background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+          color: #888898; border-radius: 12px; padding: 10px;
+          cursor: pointer; transition: all 0.2s; display: flex; align-items: center;
+        }
+        .mem-lb-nav:hover { background: rgba(255,77,0,0.12); border-color: rgba(255,77,0,0.3); color: #ff4d00; }
+        .mem-lb-nav-l { left: 16px; }
+        .mem-lb-nav-r { right: 16px; }
+        .mem-lb-img-wrap { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; pointer-events: none; padding: 8px 72px; }
+        .mem-lb-img-wrap img { max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 12px; box-shadow: 0 32px 80px rgba(0,0,0,0.8); }
+        .mem-lb-counter {
+          position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
+          background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+          color: #888898; font-size: 11px; font-weight: 600; letter-spacing: 2px;
+          padding: 6px 18px; border-radius: 100px; backdrop-filter: blur(8px);
+        }
+      `}</style>
 
       {/* Empty State */}
       {photos.length === 0 ? (
-        <div className="text-center py-32 border border-gray-200 border-dashed rounded-[24px] bg-white mx-6">
-          <ImageIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-          <p className="text-gray-500 text-lg">No photos uploaded yet.</p>
-          <p className="text-gray-400 text-sm">Check back after the event!</p>
+        <div className="mem-empty-dark">
+          <ImageIcon size={48} strokeWidth={1} style={{ margin: "0 auto 12px", display: "block", color: "#3a3a50" }} />
+          <p>No photos yet — check back after the trip!</p>
         </div>
       ) : (
-        /* Masonry Grid */
         <Masonry
           breakpointCols={breakpointColumnsObj}
-          className="flex -ml-4 w-auto px-4"
-          columnClassName="pl-4 bg-clip-padding"
+          className="flex w-auto"
+          columnClassName="bg-clip-padding"
+          style={{ padding: "0 8px", gap: "12px" }}
         >
           {visiblePhotos.map((photo, index) => {
             const { src, srcSet, sizes } = buildImageSources(photo.url);
@@ -263,7 +405,8 @@ export default function PhotoGallery() {
             return (
               <div
                 key={photo._id || `${photo.url}-${index}`}
-                className="mb-4 overflow-hidden rounded-xl shadow-sm cursor-pointer transform transition-transform duration-300 hover:scale-[1.02] hover:shadow-lg"
+                className="mem-tile-wrap"
+                style={{ margin: "0 6px 12px" }}
                 onClick={() => openLightbox(photo, index)}
               >
                 <LazyImage
@@ -271,53 +414,45 @@ export default function PhotoGallery() {
                   srcSet={srcSet}
                   sizes={sizes}
                   placeholder={tiny}
-                  alt={`gallery-${index}`}
-                  className="w-full h-auto object-cover rounded-xl"
+                  alt={`memory-${index}`}
+                  className="w-full h-auto object-cover"
+                  style={{ borderRadius: 12 }}
                 />
+                <div className="mem-tile-hover" />
               </div>
             );
           })}
         </Masonry>
       )}
 
-      {/* Infinite Scroll Sentinel */}
+      {/* Infinite scroll sentinel */}
       {visibleCount < photos.length && (
-        <div ref={loadMoreRef} className="py-12 text-center text-sm text-gray-500 animate-pulse">
-          {loadingMore ? "Loading more memories..." : "Scroll for more"}
+        <div ref={loadMoreRef} className="mem-load-more">
+          {loadingMore ? "Loading..." : "↓ Scroll for more"}
         </div>
       )}
 
-      {/* Lightbox Modal */}
+      {/* Lightbox */}
       {selectedPhoto && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-md p-4" onClick={closeLightbox}>
-          {/* Close Button */}
-          <button onClick={(e) => { e.stopPropagation(); closeLightbox(); }} className="absolute top-6 right-6 text-white/70 hover:text-white bg-black/50 hover:bg-black/80 p-2 rounded-full transition z-30">
-            <X size={32} />
+        <div className="mem-lb-overlay" onClick={closeLightbox}>
+          <button className="mem-lb-close" onClick={(e) => { e.stopPropagation(); closeLightbox(); }}>
+            <X size={22} />
           </button>
-
-          {/* Navigation Buttons */}
-          <button onClick={(e) => { e.stopPropagation(); goToPrevious(); }} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/70 hover:text-white bg-black/50 hover:bg-black/80 p-3 rounded-full transition z-30">
-            <ChevronLeft size={40} />
+          <button className="mem-lb-nav mem-lb-nav-l" onClick={(e) => { e.stopPropagation(); goToPrevious(); }}>
+            <ChevronLeft size={28} />
           </button>
-          <button onClick={(e) => { e.stopPropagation(); goToNext(); }} className="absolute right-4 top-1/2 -translate-y-1/2 text-white/70 hover:text-white bg-black/50 hover:bg-black/80 p-3 rounded-full transition z-30">
-            <ChevronRight size={40} />
+          <button className="mem-lb-nav mem-lb-nav-r" onClick={(e) => { e.stopPropagation(); goToNext(); }}>
+            <ChevronRight size={28} />
           </button>
-
-          {/* Main Image */}
-          <div className="w-full h-full flex items-center justify-center pointer-events-none p-2 md:p-10">
+          <div className="mem-lb-img-wrap">
             <img
               src={cldTransform(selectedPhoto.url, ["f_auto", "q_auto", "dpr_auto", "w_1600"])}
-              srcSet={["640w", "960w", "1280w", "1600w"].map(w => `${cldTransform(selectedPhoto.url, ["f_auto", "q_auto", "dpr_auto", `w_${w.replace('w', '')}`])} ${w}`).join(", ")}
+              srcSet={["640", "960", "1280", "1600"].map(w => `${cldTransform(selectedPhoto.url, ["f_auto", "q_auto", "dpr_auto", `w_${w}`])} ${w}w`).join(", ")}
               sizes="90vw"
               alt="Memory"
-              className="max-w-full max-h-full object-contain rounded shadow-2xl"
             />
           </div>
-
-          {/* Footer Info */}
-          <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 text-white/80 text-sm bg-black/60 px-6 py-2 rounded-full backdrop-blur-sm border border-white/10">
-            {currentIndex + 1} / {photos.length}
-          </div>
+          <div className="mem-lb-counter">{currentIndex + 1} / {photos.length}</div>
         </div>
       )}
     </div>
