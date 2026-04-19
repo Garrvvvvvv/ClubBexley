@@ -41,6 +41,90 @@ const TEAM = [
     github: "#",
     instagram: "#",
   },
+  {
+    id: 4,
+    name: "Add Name",
+    role: "Route Scout",
+    tagline: "Finds the path no one else dares to take.",
+    funFact: "Has memorised every mountain pass in Himachal.",
+    image: "/assets/team/IMG_7391.PNG",
+    accent: "#34d399",
+    linkedin: "#",
+    github: "",
+    instagram: "#",
+  },
+  {
+    id: 5,
+    name: "Add Name",
+    role: "Logistics Head",
+    tagline: "Chaos is just a plan waiting to happen.",
+    funFact: "Can set up camp in under 8 minutes flat.",
+    image: "/assets/team/IMG_7392.PNG",
+    accent: "#38bdf8",
+    linkedin: "#",
+    github: "#",
+    instagram: "#",
+  },
+  {
+    id: 6,
+    name: "Add Name",
+    role: "Media & Storytelling",
+    tagline: "Every peak is a frame worth capturing.",
+    funFact: "Shot 4,000 photos on a single Ladakh trip.",
+    image: "/assets/team/IMG_7394.PNG",
+    accent: "#f472b6",
+    linkedin: "#",
+    github: "",
+    instagram: "#",
+  },
+  {
+    id: 7,
+    name: "Add Name",
+    role: "Safety Officer",
+    tagline: "Adventure is only fun when everyone comes back.",
+    funFact: "Certified in wilderness first aid and avalanche rescue.",
+    image: "/assets/team/IMG_7397.JPG",
+    accent: "#fb923c",
+    linkedin: "#",
+    github: "#",
+    instagram: "#",
+  },
+  {
+    id: 8,
+    name: "Add Name",
+    role: "Community Manager",
+    tagline: "Strangers become family by day two.",
+    funFact: "Remembers every member's name after one trip.",
+    image: "/assets/team/IMG_7398.JPG",
+    accent: "#e879f9",
+    linkedin: "#",
+    github: "",
+    instagram: "#",
+  },
+  {
+    id: 9,
+    name: "Add Name",
+    role: "Finance & Deals",
+    tagline: "Epic adventures, surprisingly honest prices.",
+    funFact: "Once haggled a guesthouse down 60% — in Hindi.",
+    image: "/assets/team/IMG_7399.PNG",
+    accent: "#facc15",
+    linkedin: "#",
+    github: "#",
+    instagram: "#",
+  },
+  {
+    id: 10,
+    name: "Add Name",
+    role: "Co-Founder",
+    tagline: "Started this whole thing on a midnight dare.",
+    funFact: "Has slept under open sky in 12 different states.",
+    image: "/assets/team/IMG_7400.JPG",
+    accent: "#ff4d00",
+    linkedin: "#",
+    github: "#",
+    instagram: "#",
+  },
 ];
 
 const isUrl = (u) => u && u.startsWith("http");
@@ -156,7 +240,7 @@ function MemberCard({ member, index }) {
           <div className="card-photo-grad" />
 
           {/* index number watermark */}
-          <span className="card-num">0{index + 1}</span>
+          <span className="card-num">{String(index + 1).padStart(2, '0')}</span>
         </div>
 
         {/* content */}
@@ -499,14 +583,7 @@ export default function TeamPage() {
           filter: grayscale(0%) brightness(1);
         }
         .card-photo-grad {
-          position: absolute; inset: 0;
-          background: linear-gradient(
-            to top,
-            #0d0d16 0%,
-            rgba(13,13,22,0.7) 35%,
-            rgba(13,13,22,0.1) 65%,
-            transparent 100%
-          );
+          display: none;
         }
         .card-num {
           position: absolute; top: 16px; left: 20px; z-index: 2;
@@ -669,7 +746,7 @@ export default function TeamPage() {
 
           {/* member count */}
           <div className="hero-count">
-            <div className="hero-count-num">0{TEAM.length}</div>
+            <div className="hero-count-num">{String(TEAM.length).padStart(2, '0')}</div>
             <div className="hero-count-label">Members</div>
           </div>
 
