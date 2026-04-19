@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../../lib/api";
 import "./home.css";
@@ -10,36 +10,8 @@ function cld(url, transforms = []) {
   return url.replace("/upload/", `/upload/${t}/`);
 }
 
-/* ─── 3D Tilt Card ──────────────────────────────────── */
 function TiltCard({ children, className }) {
-  const ref   = useRef(null);
-  const rafId = useRef(null);
-
-  const onMove = useCallback((e) => {
-    if (rafId.current) cancelAnimationFrame(rafId.current);
-    rafId.current = requestAnimationFrame(() => {
-      const el = ref.current;
-      if (!el) return;
-      const r  = el.getBoundingClientRect();
-      const x  = ((e.clientX - r.left)  / r.width  - 0.5) * 2;
-      const y  = ((e.clientY - r.top)   / r.height - 0.5) * 2;
-      el.style.transform    = `perspective(900px) rotateY(${x * 10}deg) rotateX(${-y * 10}deg) translateZ(6px)`;
-      el.style.transition   = "transform 0.08s linear";
-    });
-  }, []);
-
-  const onLeave = useCallback(() => {
-    if (ref.current) {
-      ref.current.style.transform  = "perspective(900px) rotateY(0deg) rotateX(0deg) translateZ(0)";
-      ref.current.style.transition = "transform 0.6s cubic-bezier(0.23,1,0.32,1)";
-    }
-  }, []);
-
-  return (
-    <div ref={ref} className={className} onMouseMove={onMove} onMouseLeave={onLeave}>
-      {children}
-    </div>
-  );
+  return <div className={className}>{children}</div>;
 }
 
 /* ─── Animated counter hook ─────────────────────────── */
@@ -101,27 +73,7 @@ export default function Home() {
     return () => obs.disconnect();
   }, []);
 
-  /* ── hero parallax ── */
-  const heroRef  = useRef(null);
-  const heroPara = useCallback((e) => {
-    const el = heroRef.current;
-    if (!el) return;
-    const { width, height, left, top } = el.getBoundingClientRect();
-    const x = (e.clientX - left - width  / 2) / width;
-    const y = (e.clientY - top  - height / 2) / height;
-    el.querySelectorAll(".hero-bg-layer.active").forEach(l => {
-      l.style.transform  = `scale(1.08) translate(${x * 22}px, ${y * 18}px)`;
-      l.style.transition = "transform 0.12s linear, opacity 1.8s ease";
-    });
-  }, []);
-  const heroParaLeave = useCallback(() => {
-    const el = heroRef.current;
-    if (!el) return;
-    el.querySelectorAll(".hero-bg-layer").forEach(l => {
-      l.style.transform  = "";
-      l.style.transition = "transform 1.2s ease, opacity 1.8s ease";
-    });
-  }, []);
+  const heroRef = useRef(null);
 
   /* counters */
   const c1 = useCounter(200,  2200, statsOn);
@@ -141,8 +93,6 @@ export default function Home() {
       <section
         className="hero-v2"
         ref={heroRef}
-        onMouseMove={heroPara}
-        onMouseLeave={heroParaLeave}
       >
         {/* BG */}
         <div className="hero-bg">
@@ -422,13 +372,18 @@ export default function Home() {
               <TiltCard key={trip._id} className={`trip-card${i === 0 ? " trip-card-featured" : ""}`}>
                 <Link to={`/event/${trip.slug}`} className="trip-card-inner">
                   <div className="trip-img-wrap">
-                    <img
-                      src={cld(trip.posterUrl || "", ["f_auto","q_auto","w_900","c_fill","g_auto"])}
-                      alt={trip.name}
-                      className="trip-img"
-                      loading="lazy"
-                      onError={e => { e.target.style.display = "none"; }}
-                    />
+                    <picture>
+                      {trip.mobilePosterUrl && (
+                        <source media="(max-width: 768px)" srcSet={cld(trip.mobilePosterUrl, ["f_auto","q_auto","w_600"])} />
+                      )}
+                      <img
+                        src={cld(trip.posterUrl || "", ["f_auto","q_auto","w_900","c_fill","g_auto"])}
+                        alt={trip.name}
+                        className="trip-img"
+                        loading="lazy"
+                        onError={e => { e.target.style.display = "none"; }}
+                      />
+                    </picture>
                     <div className="trip-img-grad" />
                     <div className="trip-badges">
                       <span className="badge-type">{trip.type === "TRIP" ? "Trip" : "Event"}</span>

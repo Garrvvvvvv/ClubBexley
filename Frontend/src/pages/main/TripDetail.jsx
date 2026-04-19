@@ -33,13 +33,18 @@ export default function TripDetail() {
     <div style={{ fontFamily: "'Outfit', 'Segoe UI', sans-serif", background: "#f7f5f2", minHeight: "100vh" }}>
 
       {/* ── HERO ── full-bleed under fixed navbar (negative margin pulls it up) */}
-      <div style={{ position: "relative", height: 500, overflow: "hidden", background: "#1a1a1a", marginTop: -90 }}>
+      <div style={{ position: "relative", aspectRatio: "16/9", maxHeight: "90vh", overflow: "hidden", background: "#1a1a1a", marginTop: -90 }}>
         {trip.posterUrl ? (
-          <img
-            src={trip.posterUrl}
-            alt={trip.name}
-            style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 0.55 }}
-          />
+          <picture style={{ width: "100%", height: "100%", display: "block" }}>
+            {trip.mobilePosterUrl && (
+              <source media="(max-width: 768px)" srcSet={trip.mobilePosterUrl} />
+            )}
+            <img
+              src={trip.posterUrl}
+              alt={trip.name}
+              style={{ width: "100%", height: "100%", objectFit: "contain", objectPosition: "center", opacity: 0.9, background: "#1a1a1a" }}
+            />
+          </picture>
         ) : (
           <div style={{ width: "100%", height: "100%", background: "linear-gradient(135deg, #1a1a1a 0%, #3a1a0a 100%)" }} />
         )}

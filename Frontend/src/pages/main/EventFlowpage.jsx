@@ -317,7 +317,7 @@ export default function EventFlow() {
                 hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)]
                 transition-all"
               >
-                <div className="h-56 bg-slate-100 relative">
+                <div className="bg-slate-100 relative" style={{ aspectRatio: "16/9" }}>
                   {ev.posterUrl ? (
                     <img
                       src={ev.posterUrl}

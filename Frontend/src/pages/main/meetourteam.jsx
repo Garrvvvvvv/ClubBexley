@@ -95,7 +95,7 @@ const TEAM = [
     role: "Community Manager",
     tagline: "Strangers become family by day two.",
     funFact: "Remembers every member's name after one trip.",
-    image: "/assets/team/IMG_7398.JPG",
+    image: "/assets/team/123.jpeg",
     accent: "#e879f9",
     linkedin: "#",
     github: "",

@@ -39,8 +39,9 @@ const EventSchema = new mongoose.Schema({
   description: { type: String, required: true, minlength: 10, maxlength: 500 },
   type:        { type: String, enum: ["TRIP", "CLUB_EVENT"], default: "CLUB_EVENT" },
 
-  posterUrl:    { type: String, default: "" },
-  paymentQRUrl: { type: String, default: "" },
+  posterUrl:       { type: String, default: "" },
+  mobilePosterUrl: { type: String, default: "" },
+  paymentQRUrl:    { type: String, default: "" },
 
   status: {
     type: String,

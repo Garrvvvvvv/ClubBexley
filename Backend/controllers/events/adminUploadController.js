@@ -54,6 +54,23 @@ export const uploadPoster = async (req, res) => {
 };
 
 /* ==========================================
+   UPLOAD MOBILE POSTER
+   ========================================== */
+export const uploadMobilePoster = async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ message: "No file uploaded" });
+    const event = await Event.findById(req.params.id);
+    if (!event) return res.status(404).json({ message: "Event not found" });
+    const result = await uploadToCloudinary(req.file, `arc_events/${event.slug}/mobile`);
+    event.mobilePosterUrl = result.secure_url;
+    const savedEvent = await event.save();
+    res.json({ mobilePosterUrl: savedEvent.mobilePosterUrl });
+  } catch (err) {
+    res.status(500).json({ message: "Upload failed: " + err.message });
+  }
+};
+
+/* ==========================================
    UPLOAD QR CODE
    ========================================== */
 export const uploadQR = async (req, res) => {

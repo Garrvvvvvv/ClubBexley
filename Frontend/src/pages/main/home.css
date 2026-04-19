@@ -263,55 +263,32 @@
   width: 320px;
   height: 460px;
   flex-shrink: 0;
-  perspective: 1400px;
   animation: fadeUp 0.9s 0.4s both;
 }
 
 .stack-card {
   position: absolute;
-  width: 252px;
-  height: 370px;
+  width: 380px;
+  height: 214px;
   border-radius: 22px;
   overflow: hidden;
   text-decoration: none;
-  transform-style: preserve-3d;
-  transition: all 0.5s cubic-bezier(0.23,1,0.32,1);
   cursor: pointer;
 }
-.stack-card:hover { transform: scale(1.04) translateZ(30px) rotateY(0deg) rotateZ(0deg) !important; z-index: 100; }
 
 .stack-card-0 {
-  right: 0; top: 55px;
-  transform: rotateY(-20deg) rotateZ(-6deg) translateZ(-50px);
+  right: 0; top: 70px;
   box-shadow: 0 24px 60px rgba(0,0,0,0.7);
   opacity: 0.65;
-  animation: floatA 7s ease-in-out infinite;
 }
 .stack-card-1 {
-  right: 36px; top: 24px;
-  transform: rotateY(-7deg) rotateZ(-2deg) translateZ(-15px);
+  right: 28px; top: 36px;
   box-shadow: 0 32px 72px rgba(0,0,0,0.6);
   opacity: 0.88;
-  animation: floatB 6s ease-in-out infinite 0.6s;
 }
 .stack-card-2 {
-  right: 72px; top: 0;
-  transform: rotateY(5deg) rotateZ(3deg) translateZ(20px);
+  right: 56px; top: 0;
   box-shadow: 0 40px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.08);
-  animation: floatC 5.5s ease-in-out infinite 1.2s;
-}
-
-@keyframes floatA {
-  0%,100% { transform: rotateY(-20deg) rotateZ(-6deg) translateZ(-50px) translateY(0); }
-  50%      { transform: rotateY(-20deg) rotateZ(-6deg) translateZ(-50px) translateY(-12px); }
-}
-@keyframes floatB {
-  0%,100% { transform: rotateY(-7deg) rotateZ(-2deg) translateZ(-15px) translateY(0); }
-  50%      { transform: rotateY(-7deg) rotateZ(-2deg) translateZ(-15px) translateY(-18px); }
-}
-@keyframes floatC {
-  0%,100% { transform: rotateY(5deg) rotateZ(3deg) translateZ(20px) translateY(0); }
-  50%      { transform: rotateY(5deg) rotateZ(3deg) translateZ(20px) translateY(-14px); }
 }
 
 .stack-card-img {
@@ -319,9 +296,7 @@
   inset: 0;
   background-size: cover;
   background-position: center;
-  transition: transform 0.6s ease;
 }
-.stack-card:hover .stack-card-img { transform: scale(1.06); }
 
 .stack-card-overlay {
   position: absolute;
@@ -373,7 +348,6 @@
   animation: marqueeRun 35s linear infinite;
   gap: 0;
 }
-.hero-marquee:hover { animation-play-state: paused; }
 .marquee-item {
   font-family: var(--font-display);
   font-size: 13px;
@@ -383,7 +357,6 @@
   padding: 0 28px;
   transition: color 0.3s;
 }
-.marquee-item:hover { color: var(--accent); }
 .marquee-dot { color: var(--accent); margin-right: 10px; font-size: 9px; vertical-align: 1px; }
 
 @keyframes marqueeRun {
@@ -505,7 +478,6 @@
   transition: box-shadow 0.4s ease;
   position: relative;
 }
-.trip-card:hover { box-shadow: 0 48px 96px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,77,0,0.1); }
 
 .trip-card-inner {
   display: flex;
@@ -518,17 +490,18 @@
 .trip-img-wrap {
   position: relative;
   overflow: hidden;
-  height: 250px;
+  aspect-ratio: 16 / 9;
+  width: 100%;
   flex-shrink: 0;
 }
-.trip-card-featured .trip-img-wrap { height: 340px; }
+.trip-card-featured .trip-img-wrap { aspect-ratio: 16 / 9; }
 
 .trip-img {
+  position: absolute;
+  inset: 0;
   width: 100%; height: 100%;
   object-fit: cover;
-  transition: transform 0.7s cubic-bezier(0.25,0.46,0.45,0.94);
 }
-.trip-card:hover .trip-img { transform: scale(1.07); }
 
 .trip-img-grad {
   position: absolute;
@@ -611,14 +584,7 @@
   border: 1px solid rgba(255,77,0,0.3);
   display: flex; align-items: center; justify-content: center;
   color: var(--accent);
-  transition: all 0.3s ease;
   font-size: 14px;
-}
-.trip-card:hover .trip-cta-arrow {
-  background: var(--accent);
-  color: #fff;
-  border-color: var(--accent);
-  transform: rotate(-45deg);
 }
 
 /* EMPTY TRIPS */
@@ -742,13 +708,6 @@
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: 18px;
-  transition: all 0.35s cubic-bezier(0.23,1,0.32,1);
-}
-.why-card:hover {
-  border-color: rgba(255,77,0,0.22);
-  background: var(--bg-elevated);
-  transform: translateY(-5px);
-  box-shadow: 0 24px 48px rgba(0,0,0,0.35);
 }
 .why-icon { font-size: 30px; display: block; margin-bottom: 14px; }
 .why-card-title { font-size: 14px; font-weight: 700; color: var(--text); margin: 0 0 8px; }
@@ -784,30 +743,11 @@
   width: 100%; height: 100%;
   object-fit: cover;
   display: block;
-  transition: transform 0.7s cubic-bezier(0.25,0.46,0.45,0.94);
 }
-.mem-tile:hover img { transform: scale(1.08); }
 
 .mem-tile-overlay {
-  position: absolute;
-  inset: 0;
-  background: rgba(6,6,11,0);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.35s ease;
+  display: none;
 }
-.mem-tile-overlay span {
-  font-size: 13px;
-  font-weight: 700;
-  color: #fff;
-  letter-spacing: 1px;
-  opacity: 0;
-  transform: translateY(8px);
-  transition: all 0.35s ease;
-}
-.mem-tile:hover .mem-tile-overlay { background: rgba(6,6,11,0.55); }
-.mem-tile:hover .mem-tile-overlay span { opacity: 1; transform: translateY(0); }
 
 /* ════════════════════════════════════════════════════
    LAKE DIVIDER
@@ -895,7 +835,6 @@
   .headline-line { font-size: clamp(64px, 16vw, 88px); }
   .trips-grid { grid-template-columns: 1fr; }
   .trip-card-featured { grid-column: span 1; }
-  .trip-card-featured .trip-img-wrap { height: 260px; }
   .trip-card-featured .trip-name { font-size: 28px; }
   .stats-grid { grid-template-columns: 1fr; }
   .stat-item { border-right: none; border-bottom: 1px solid var(--border); padding: 36px 24px; }

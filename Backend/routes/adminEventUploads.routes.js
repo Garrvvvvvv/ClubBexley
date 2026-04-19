@@ -1,6 +1,6 @@
 import { Router } from "express";
 import multer from "multer";
-import { uploadPoster, uploadQR } from "../controllers/events/adminUploadController.js";
+import { uploadPoster, uploadMobilePoster, uploadQR } from "../controllers/events/adminUploadController.js";
 import requireAdmin from "../middleware/requireAdmin.js";
 
 const router = Router();
@@ -13,6 +13,9 @@ const upload = multer({
 
 // Matches: /api/admin/events/:id/poster
 router.post("/:id/poster", requireAdmin, upload.single("image"), uploadPoster);
+
+// Matches: /api/admin/events/:id/mobile-poster
+router.post("/:id/mobile-poster", requireAdmin, upload.single("image"), uploadMobilePoster);
 
 // Matches: /api/admin/events/:id/qr
 router.post("/:id/qr", requireAdmin, upload.single("image"), uploadQR);

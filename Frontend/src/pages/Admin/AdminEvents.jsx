@@ -56,6 +56,7 @@ export default function AdminEvents() {
   const [events, setEvents] = useState([]);
   const [editingId, setEditingId] = useState(null);
   const [posterPreview, setPosterPreview] = useState(null);
+  const [mobilePosterPreview, setMobilePosterPreview] = useState(null);
   const [qrPreview, setQrPreview] = useState(null);
   const [isFormVisible, setIsFormVisible] = useState(false);
 
@@ -63,7 +64,7 @@ export default function AdminEvents() {
     /* core */
     name: "", slug: "", description: "", type: "CLUB_EVENT",
     status: "DRAFT", isHidden: false,
-    posterUrl: "", paymentQRUrl: "",
+    posterUrl: "", mobilePosterUrl: "", paymentQRUrl: "",
     googleFormLink: "",
 
     /* trip */
@@ -110,6 +111,7 @@ export default function AdminEvents() {
     if (!editingId) return toast.warning("Save event first before uploading assets.");
     const objectUrl = URL.createObjectURL(file);
     if (type === "poster") setPosterPreview(objectUrl);
+    else if (type === "mobile-poster") setMobilePosterPreview(objectUrl);
     else setQrPreview(objectUrl);
     const fd = new FormData();
     fd.append("image", file);
@@ -117,12 +119,12 @@ export default function AdminEvents() {
       const res = await apiAdmin.post(`/api/admin/events/${editingId}/${type}`, fd, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-      const newUrl = type === "poster" ? res.data.posterUrl : res.data.paymentQRUrl;
-      set(type === "poster" ? "posterUrl" : "paymentQRUrl", newUrl);
-      setEvents(prev => prev.map(ev =>
-        ev._id === editingId ? { ...ev, [type === "poster" ? "posterUrl" : "paymentQRUrl"]: newUrl } : ev
-      ));
-      toast.success(`${type === "poster" ? "Poster" : "QR"} uploaded!`);
+      const urlMap = { poster: "posterUrl", "mobile-poster": "mobilePosterUrl", qr: "paymentQRUrl" };
+      const key = urlMap[type];
+      const newUrl = res.data[key];
+      set(key, newUrl);
+      setEvents(prev => prev.map(ev => ev._id === editingId ? { ...ev, [key]: newUrl } : ev));
+      toast.success(`${type === "poster" ? "Desktop Poster" : type === "mobile-poster" ? "Mobile Poster" : "QR"} uploaded!`);
     } catch { toast.error("Upload failed"); }
   };
 
@@ -165,6 +167,7 @@ export default function AdminEvents() {
       flow: ev.flow || [],
     });
     setPosterPreview(ev.posterUrl || null);
+    setMobilePosterPreview(ev.mobilePosterUrl || null);
     setQrPreview(ev.paymentQRUrl || null);
     setIsFormVisible(true);
   };
@@ -532,14 +535,26 @@ export default function AdminEvents() {
                 <p className={LabelCls + " flex items-center gap-2 mb-4"}><FaImage className="text-gray-400" /> Assets</p>
                 {!editingId && <p className="text-xs text-orange-600 bg-orange-50 p-2 rounded-lg font-semibold mb-4 border border-orange-100">Save event first to upload assets.</p>}
 
-                {/* Poster */}
+                {/* Desktop Poster */}
                 <div className="mb-5">
-                  <span className="text-sm font-bold text-gray-700 block mb-2">Event Poster</span>
+                  <span className="text-sm font-bold text-gray-700 block mb-1">Desktop Poster</span>
+                  <span className="text-xs text-gray-400 block mb-2">Landscape · 1920×1080 px (16:9)</span>
                   {posterPreview
                     ? <div className="relative rounded-xl overflow-hidden mb-3 border border-gray-200"><img src={posterPreview} className="w-full h-36 object-cover" alt="Poster" /></div>
                     : <div className="w-full h-36 bg-gray-50 rounded-xl mb-3 flex flex-col items-center justify-center text-gray-300 border border-dashed border-gray-200"><FaImage size={24} className="mb-2" /><span className="text-xs">No Image</span></div>
                   }
-                  <FilePicker label={posterPreview ? "Change Poster" : "Upload Poster"} onChange={e => handleUpload("poster", e.target.files[0])} />
+                  <FilePicker label={posterPreview ? "Change Desktop Poster" : "Upload Desktop Poster"} onChange={e => handleUpload("poster", e.target.files[0])} />
+                </div>
+
+                {/* Mobile Poster */}
+                <div className="mb-5 pt-4 border-t border-gray-100">
+                  <span className="text-sm font-bold text-gray-700 block mb-1">Mobile Poster</span>
+                  <span className="text-xs text-gray-400 block mb-2">Portrait · 1080×1350 px (4:5) or 1080×1920 px (9:16)</span>
+                  {mobilePosterPreview
+                    ? <div className="relative rounded-xl overflow-hidden mb-3 border border-gray-200" style={{ aspectRatio: "4/5", maxHeight: 180 }}><img src={mobilePosterPreview} className="w-full h-full object-cover" alt="Mobile Poster" /></div>
+                    : <div className="w-full bg-gray-50 rounded-xl mb-3 flex flex-col items-center justify-center text-gray-300 border border-dashed border-gray-200" style={{ aspectRatio: "4/5", maxHeight: 180 }}><FaImage size={24} className="mb-2" /><span className="text-xs">No Image</span></div>
+                  }
+                  <FilePicker label={mobilePosterPreview ? "Change Mobile Poster" : "Upload Mobile Poster"} onChange={e => handleUpload("mobile-poster", e.target.files[0])} />
                 </div>
 
                 {/* QR (paid club events) */}
