@@ -1,41 +1,44 @@
 import { Outlet } from "react-router-dom";
-import AdminSidebar from "../../components/AdminSidebar";
+import AdminSidebar from "../../components/AdminSidebar.jsx";
 
-export default function AdminLayout() {
+export default function AdminLayout({ children }) {
   return (
-    <div className="flex h-screen font-sans" style={{ background: "#ffffff", color: "#333" }}>
-      {/* Sidebar */}
+    <div style={{
+      display: "flex",
+      height: "100vh",
+      width: "100vw",
+      background: "#06060b",
+      color: "#f0ece4",
+      fontFamily: "'Plus Jakarta Sans', sans-serif",
+      overflow: "hidden",
+    }}>
       <AdminSidebar />
 
-      {/* Main Content Area */}
-      <div 
-        className="flex-1 overflow-y-auto p-8 relative" 
-        style={{ background: "#ffffff" }}
-      >
-        {/* Subtle red ambient blurs */}
+      {/* Main content */}
+      <div style={{
+        flex: 1,
+        overflowY: "auto",
+        overflowX: "hidden",
+        background: "#06060b",
+        position: "relative",
+      }}>
+        {/* Fixed ambient orbs — purely decorative */}
         <div style={{
-          position: "absolute",
-          top: -100,
-          right: -100,
-          width: 500,
-          height: 500,
-          background: "radial-gradient(circle, rgba(202, 0, 2, 0.04) 0%, rgba(255, 255, 255, 0) 70%)",
-          borderRadius: "50%",
-          pointerEvents: "none",
+          position: "fixed", top: -100, right: -100,
+          width: 500, height: 500, borderRadius: "50%",
+          background: "radial-gradient(circle, rgba(255,77,0,0.05) 0%, transparent 70%)",
+          pointerEvents: "none", zIndex: 0,
         }} />
         <div style={{
-          position: "absolute",
-          bottom: -150,
-          left: -50,
-          width: 600,
-          height: 600,
-          background: "radial-gradient(circle, rgba(202, 0, 2, 0.03) 0%, rgba(255, 255, 255, 0) 70%)",
-          borderRadius: "50%",
-          pointerEvents: "none",
+          position: "fixed", bottom: -150, left: 300,
+          width: 600, height: 600, borderRadius: "50%",
+          background: "radial-gradient(circle, rgba(255,196,71,0.03) 0%, transparent 70%)",
+          pointerEvents: "none", zIndex: 0,
         }} />
-        
-        <div className="relative z-10 h-full min-h-full">
-          <Outlet />
+
+        {/* Page content */}
+        <div style={{ position: "relative", zIndex: 1, padding: "32px", minHeight: "100%" }}>
+          {children || <Outlet />}
         </div>
       </div>
     </div>

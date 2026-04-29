@@ -15,7 +15,6 @@ import "./models/Event.js";
 import "./models/Admin.js";
 import "./models/User.js";
 import "./models/Memory.js";
-import "./models/AdminLog.js";
 
 /* ================== ROUTES ================== */
 import googleAuthRoutes from "./routes/googleAuth.routes.js";
@@ -25,7 +24,6 @@ import adminAuthRoutes from "./routes/adminAuth.routes.js";
 import adminEventRoutes from "./routes/adminEvent.routes.js";
 import adminEventScopedRoutes from "./routes/adminEventScoped.routes.js";
 import adminGlobalGalleryRoutes from "./routes/adminGlobalGallery.routes.js";
-import adminLogsRoutes from "./routes/adminLogs.routes.js";
 
 /* ================== APP INIT ================== */
 const app = express();
@@ -88,7 +86,6 @@ app.use("/api/images", publicImagesRoutes);
 app.use("/api/admin/auth", adminAuthRoutes);
 app.use("/api/admin/events", adminEventRoutes);
 app.use("/api/admin/images", adminGlobalGalleryRoutes);
-app.use("/api/admin/logs", adminLogsRoutes);
 app.use("/api/admin", adminEventScopedRoutes);
 
 /* ================== HEALTH CHECK ================== */

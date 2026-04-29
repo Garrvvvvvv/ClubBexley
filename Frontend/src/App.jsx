@@ -20,58 +20,16 @@ import Footer from "./components/footer.jsx";
 /* ---------- Auth Guards ---------- */
 import AdminProtectedRoute from "./components/ProtectedRoute.jsx";
 import { AdminEventProvider } from "./context/AdminEventContext";
+import AdminLayout from "./pages/Admin/AdminLayout.jsx";
 
 /* ---------- Admin Pages ---------- */
 import Login from "./pages/Admin/Login.jsx";
-import Dashboard from "./pages/Admin/Dashboard.jsx";
 import AdminMemories from "./pages/Admin/AdminMemories.jsx";
 import AdminEvents from "./pages/Admin/AdminEvents";
-import AdminSidebar from "./components/AdminSidebar.jsx";
 import AdminForgotPassword from "./pages/Admin/ForgotPassword.jsx";
-import AdminLogs from "./pages/Admin/AdminLogs.jsx";
-import AdminEmails from "./pages/Admin/AdminEmails.jsx";
-
-
-/* =========================================
-   ADMIN LAYOUT WRAPPER
-   ========================================= */
-function AdminLayout({ children }) {
-  return (
-    <div className="flex min-h-screen bg-white">
-      <AdminSidebar />
-      <div className="flex-1 w-full lg:w-auto relative overflow-hidden">
-        <div style={{
-          position: "absolute",
-          top: -100,
-          right: -100,
-          width: 500,
-          height: 500,
-          background: "radial-gradient(circle, rgba(202, 0, 2, 0.04) 0%, rgba(255, 255, 255, 0) 70%)",
-          borderRadius: "50%",
-          pointerEvents: "none",
-        }} />
-        <div style={{
-          position: "absolute",
-          bottom: -150,
-          left: -50,
-          width: 600,
-          height: 600,
-          background: "radial-gradient(circle, rgba(202, 0, 2, 0.03) 0%, rgba(255, 255, 255, 0) 70%)",
-          borderRadius: "50%",
-          pointerEvents: "none",
-        }} />
-        <div className="relative z-10 p-4 md:p-6 lg:p-8 pt-20 lg:pt-8 text-gray-800 min-h-screen overflow-y-auto">
-          {children}
-        </div>
-      </div>
-    </div>
-  );
-}
-
 
 function App() {
   const location = useLocation();
-
   const isAdminRoute = location.pathname.startsWith('/admin');
   const hideNavAndFooter = isAdminRoute;
 
@@ -82,9 +40,7 @@ function App() {
       <div className={!hideNavAndFooter ? "pt-[90px]" : ""} style={!hideNavAndFooter ? { background: "#06060b", minHeight: "100vh" } : {}}>
         <Routes>
 
-          {/* =========================================
-              PUBLIC ROUTES
-          ========================================= */}
+          {/* PUBLIC ROUTES */}
           <Route path="/" element={<Home />} />
           <Route path="/home" element={<Home />} />
           <Route path="/events" element={<EventList />} />
@@ -100,9 +56,7 @@ function App() {
           <Route path="/event/:eventSlug/memories" element={<PhotoGallery />} />
           <Route path="/event/:eventSlug" element={<TripDetail />} />
 
-          {/* =========================================
-              ADMIN ROUTES
-          ========================================= */}
+          {/* ADMIN ROUTES */}
           <Route path="/admin/login" element={<Login />} />
           <Route path="/admin/forgot-password" element={<AdminForgotPassword />} />
 
@@ -113,12 +67,9 @@ function App() {
                 <AdminEventProvider>
                   <AdminLayout>
                     <Routes>
-                      <Route path="dashboard" element={<Dashboard />} />
                       <Route path="events" element={<AdminEvents />} />
                       <Route path="memories" element={<AdminMemories />} />
-                      <Route path="logs" element={<AdminLogs />} />
-                      <Route path="emails" element={<AdminEmails />} />
-                      <Route path="*" element={<Navigate to="dashboard" replace />} />
+                      <Route path="*" element={<Navigate to="events" replace />} />
                     </Routes>
                   </AdminLayout>
                 </AdminEventProvider>
@@ -126,7 +77,6 @@ function App() {
             }
           />
 
-          {/* Global Fallback */}
           <Route path="*" element={<Navigate to="/" replace />} />
 
         </Routes>

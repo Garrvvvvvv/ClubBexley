@@ -1,282 +1,288 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { apiAdmin } from "../../lib/apiAdmin";
-import { ArrowRight, Lock, Mail, KeyRound } from "lucide-react";
+import { ArrowRight, Lock, Mail, KeyRound, CheckCircle } from "lucide-react";
+
+const S = `
+  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+  :root {
+    --fp-bg: #06060b; --fp-card: #0d0d16; --fp-border: rgba(255,255,255,0.07);
+    --fp-accent: #ff4d00; --fp-accent2: #ffc447; --fp-text: #f0ece4;
+    --fp-muted: #888898; --fp-dim: #3a3a50;
+    --fp-font-d: 'Bebas Neue', sans-serif; --fp-font: 'Plus Jakarta Sans', sans-serif;
+  }
+
+  .fp-page {
+    min-height: 100vh;
+    background: var(--fp-bg);
+    display: flex; align-items: center; justify-content: center;
+    padding: 24px;
+    font-family: var(--fp-font);
+    position: relative; overflow: hidden;
+  }
+
+  .fp-orb-1 {
+    position: absolute; width: 600px; height: 600px;
+    top: -200px; left: -200px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,77,0,0.09) 0%, transparent 70%);
+    pointer-events: none; animation: fpOrb1 14s ease-in-out infinite;
+  }
+  .fp-orb-2 {
+    position: absolute; width: 500px; height: 500px;
+    bottom: -150px; right: -150px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,196,71,0.06) 0%, transparent 70%);
+    pointer-events: none; animation: fpOrb2 18s ease-in-out infinite;
+  }
+  @keyframes fpOrb1 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(40px,30px)} }
+  @keyframes fpOrb2 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(-30px,-40px)} }
+
+  .fp-mountains {
+    position: fixed; bottom: 0; left: 0; right: 0; height: 100px;
+    pointer-events: none; z-index: 0; opacity: 0.35;
+  }
+
+  .fp-card {
+    position: relative; z-index: 1;
+    width: 100%; max-width: 440px;
+    background: var(--fp-card);
+    border: 1px solid var(--fp-border);
+    border-radius: 24px; overflow: hidden;
+    box-shadow: 0 32px 80px rgba(0,0,0,0.6);
+  }
+
+  .fp-topline {
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--fp-accent) 30%, var(--fp-accent2) 60%, transparent);
+    box-shadow: 0 0 20px rgba(255,77,0,0.4);
+  }
+
+  .fp-body { padding: 40px; }
+
+  /* step tracker */
+  .fp-steps {
+    display: flex; align-items: center; gap: 0; margin-bottom: 36px;
+  }
+  .fp-step {
+    display: flex; align-items: center; justify-content: center;
+    width: 28px; height: 28px; border-radius: 50%;
+    font-size: 11px; font-weight: 700;
+    border: 1px solid var(--fp-border);
+    color: var(--fp-dim); background: rgba(255,255,255,0.02);
+    transition: all 0.3s;
+  }
+  .fp-step.active { background: var(--fp-accent); color: #fff; border-color: var(--fp-accent); box-shadow: 0 0 14px rgba(255,77,0,0.4); }
+  .fp-step.done { background: rgba(52,211,153,0.15); border-color: rgba(52,211,153,0.4); color: #34d399; }
+  .fp-step-line { flex: 1; height: 1px; background: var(--fp-border); margin: 0 6px; }
+  .fp-step-line.done { background: rgba(52,211,153,0.3); }
+
+  /* logo */
+  .fp-logo { display: flex; align-items: center; gap: 10px; margin-bottom: 28px; text-decoration: none; }
+  .fp-logo-img { width: 32px; height: 32px; border-radius: 8px; background: rgba(255,255,255,0.04); border: 1px solid var(--fp-border); padding: 3px; object-fit: contain; }
+  .fp-logo-name { font-family: var(--fp-font-d); font-size: 18px; letter-spacing: 1.5px; color: var(--fp-text); }
+  .fp-logo-name em { font-style: normal; background: linear-gradient(135deg,#ff4d00,#ffc447); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+
+  .fp-headline { font-family: var(--fp-font-d); font-size: 42px; line-height: 0.9; color: var(--fp-text); margin-bottom: 6px; }
+  .fp-sub { font-size: 13px; color: var(--fp-muted); margin-bottom: 28px; }
+
+  /* messages */
+  .fp-error { font-size: 12px; color: var(--fp-accent); background: rgba(255,77,0,0.08); border: 1px solid rgba(255,77,0,0.2); border-radius: 10px; padding: 11px 14px; margin-bottom: 18px; display: flex; align-items: center; gap: 8px; }
+  .fp-success { font-size: 12px; color: #34d399; background: rgba(52,211,153,0.08); border: 1px solid rgba(52,211,153,0.2); border-radius: 10px; padding: 11px 14px; margin-bottom: 18px; display: flex; align-items: center; gap: 8px; }
+
+  /* input */
+  .fp-field { margin-bottom: 18px; }
+  .fp-label { font-size: 9px; font-weight: 700; letter-spacing: 2.5px; text-transform: uppercase; color: var(--fp-dim); display: block; margin-bottom: 8px; }
+  .fp-input-wrap { position: relative; }
+  .fp-input-icon { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); color: var(--fp-dim); pointer-events: none; }
+  .fp-input {
+    width: 100%; background: rgba(255,255,255,0.03); border: 1px solid var(--fp-border);
+    border-radius: 11px; padding: 13px 13px 13px 40px;
+    color: var(--fp-text); font-family: var(--fp-font); font-size: 14px; font-weight: 500;
+    outline: none; transition: all 0.2s; box-sizing: border-box;
+  }
+  .fp-input::placeholder { color: var(--fp-dim); }
+  .fp-input:focus { border-color: rgba(255,77,0,0.5); box-shadow: 0 0 0 3px rgba(255,77,0,0.08); background: rgba(255,255,255,0.04); }
+
+  /* btn */
+  .fp-btn {
+    width: 100%; background: linear-gradient(135deg,#ff5200,#ff7033); color: #fff;
+    border: none; border-radius: 12px; padding: 15px;
+    font-family: var(--fp-font); font-size: 14px; font-weight: 700; letter-spacing: 0.5px;
+    cursor: pointer; transition: all 0.3s cubic-bezier(0.23,1,0.32,1);
+    box-shadow: 0 8px 24px rgba(255,77,0,0.3);
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    margin-top: 8px;
+  }
+  .fp-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 14px 36px rgba(255,77,0,0.5); }
+  .fp-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .fp-btn-spin { width: 16px; height: 16px; border-radius: 50%; border: 2px solid rgba(255,255,255,.3); border-top-color: #fff; animation: fpSpin .7s linear infinite; }
+  @keyframes fpSpin { to { transform: rotate(360deg); } }
+
+  .fp-back { font-size: 11px; font-weight: 700; color: var(--fp-dim); text-decoration: none; margin-top: 16px; display: inline-block; transition: color .2s; }
+  .fp-back:hover { color: var(--fp-muted); }
+
+  .fp-footer { margin-top: 28px; padding-top: 20px; border-top: 1px solid var(--fp-border); text-align: center; font-size: 11px; color: var(--fp-dim); }
+  .fp-footer a { color: var(--fp-muted); text-decoration: none; transition: color .2s; }
+  .fp-footer a:hover { color: var(--fp-accent); }
+`;
 
 export default function ForgotPassword() {
-    // 1: Request OTP | 2: Verify OTP | 3: Reset Password
-    const [step, setStep] = useState(1);
-    const [loading, setLoading] = useState(false);
-    const [err, setErr] = useState("");
-    const [msg, setMsg] = useState("");
+  const [step, setStep] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [err, setErr] = useState("");
+  const [msg, setMsg] = useState("");
+  const [username, setUsername] = useState("");
+  const [otp, setOtp] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [resetToken, setResetToken] = useState("");
+  const navigate = useNavigate();
 
-    const [username, setUsername] = useState("");
-    const [otp, setOtp] = useState("");
-    const [newPassword, setNewPassword] = useState("");
-    const [confirmPassword, setConfirmPassword] = useState("");
-    const [resetToken, setResetToken] = useState("");
+  const clear = () => { setErr(""); setMsg(""); };
 
-    const navigate = useNavigate();
+  const requestOtp = async (e) => {
+    e.preventDefault(); clear(); setLoading(true);
+    try {
+      const res = await apiAdmin.post("/api/admin/auth/forgot-password", { username });
+      setMsg(res.data.message);
+      setStep(2);
+    } catch (error) { setErr(error.response?.data?.message || "Failed to request OTP"); }
+    finally { setLoading(false); }
+  };
 
-    // Step 1: Request OTP
-    const handleRequestOtp = async (e) => {
-        e.preventDefault();
-        setErr("");
-        setMsg("");
-        setLoading(true);
+  const verifyOtp = async (e) => {
+    e.preventDefault(); clear(); setLoading(true);
+    try {
+      const res = await apiAdmin.post("/api/admin/auth/verify-otp", { username, otp });
+      setResetToken(res.data.resetToken);
+      setMsg("OTP verified. Set your new password below.");
+      setStep(3);
+    } catch (error) { setErr(error.response?.data?.message || "Invalid or expired OTP"); }
+    finally { setLoading(false); }
+  };
 
-        try {
-            const res = await apiAdmin.post("/api/admin/auth/forgot-password", { username });
-            setMsg(res.data.message);
-            setStep(2);
-        } catch (error) {
-            setErr(error.response?.data?.message || "Failed to request OTP");
-        } finally {
-            setLoading(false);
-        }
-    };
+  const resetPassword = async (e) => {
+    e.preventDefault(); clear();
+    if (newPassword !== confirmPassword) return setErr("Passwords do not match");
+    setLoading(true);
+    try {
+      const res = await apiAdmin.post("/api/admin/auth/reset-password", { resetToken, newPassword });
+      setMsg(res.data.message);
+      setTimeout(() => navigate("/admin/login"), 2000);
+    } catch (error) { setErr(error.response?.data?.message || "Failed to reset password"); }
+    finally { setLoading(false); }
+  };
 
-    // Step 2: Verify OTP
-    const handleVerifyOtp = async (e) => {
-        e.preventDefault();
-        setErr("");
-        setMsg("");
-        setLoading(true);
+  const TITLES = ["Recover Access", "Verify OTP", "New Password"];
+  const SUBS = [
+    "Enter your admin username to receive a one-time code.",
+    "Enter the 6-digit code sent to your registered email.",
+    "Create a new secure password for your account.",
+  ];
 
-        try {
-            const res = await apiAdmin.post("/api/admin/auth/verify-otp", { username, otp });
-            setResetToken(res.data.resetToken);
-            setMsg("OTP verified successfully. Please enter your new password.");
-            setStep(3);
-        } catch (error) {
-            setErr(error.response?.data?.message || "Invalid or expired OTP");
-        } finally {
-            setLoading(false);
-        }
-    };
+  return (
+    <>
+      <style>{S}</style>
+      <div className="fp-page">
+        <div className="fp-orb-1" /><div className="fp-orb-2" />
+        <svg className="fp-mountains" viewBox="0 0 1440 100" preserveAspectRatio="none">
+          <path d="M0,100 L0,70 L100,46 L200,62 L300,30 L400,54 L500,22 L600,50 L700,20 L800,52 L900,28 L1000,54 L1100,35 L1200,58 L1300,40 L1440,55 L1440,100 Z" fill="#0d0d16"/>
+          <path d="M0,100 L0,84 L120,65 L240,78 L360,54 L480,70 L600,46 L720,68 L840,44 L960,66 L1080,52 L1200,70 L1320,56 L1440,68 L1440,100 Z" fill="#06060b"/>
+        </svg>
 
-    // Step 3: Reset Password
-    const handleResetPassword = async (e) => {
-        e.preventDefault();
-        setErr("");
-        setMsg("");
+        <div className="fp-card">
+          <div className="fp-topline" />
+          <div className="fp-body">
 
-        if (newPassword !== confirmPassword) {
-            return setErr("Passwords do not match");
-        }
+            {/* Logo */}
+            <a href="/" className="fp-logo">
+              <img src="/assets/bglogo.png" alt="Club Bexley" className="fp-logo-img" onError={e => { e.target.style.display = "none"; }} />
+              <span className="fp-logo-name">CLUB <em>BEXLEY</em></span>
+            </a>
 
-        setLoading(true);
-
-        try {
-            const res = await apiAdmin.post("/api/admin/auth/reset-password", {
-                resetToken,
-                newPassword
-            });
-            setMsg(res.data.message);
-            setTimeout(() => {
-                navigate("/admin/login");
-            }, 2000);
-        } catch (error) {
-            setErr(error.response?.data?.message || "Failed to reset password");
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    return (
-        <div className="min-h-screen flex items-center justify-center p-4" style={{ background: "#f5f5f5" }}>
-            {/* Main Card */}
-            <div
-                className="w-full max-w-[900px] min-h-[500px] md:h-[500px] bg-white rounded-2xl shadow-xl flex flex-col md:flex-row overflow-hidden relative"
-                style={{
-                    background: "rgba(255, 255, 255, 0.95)",
-                    backdropFilter: "blur(20px)",
-                    border: "1px solid rgba(0, 0, 0, 0.04)"
-                }}
-            >
-
-                {/* Red accent bar at top */}
-                <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 4, background: "linear-gradient(90deg, #CA0002, #e53535)", zIndex: 20 }} />
-
-                {/* Left Side: Form Content */}
-                <div className="w-full md:w-1/2 p-10 sm:p-14 flex flex-col justify-center order-2 md:order-1 relative z-10">
-                    <div className="w-full">
-                        <h1 className="text-3xl font-bold text-gray-800 tracking-tight mb-2">
-                            Admin Reset
-                        </h1>
-                        <p className="text-sm text-gray-400 mb-8">
-                            {step === 1 && "Enter your admin email to receive an OTP"}
-                            {step === 2 && "Enter the 6-digit OTP sent to your email"}
-                            {step === 3 && "Create a new admin password"}
-                        </p>
-
-                        {err && (
-                            <div className="bg-red-50/50 text-[#CA0002] text-sm py-2.5 px-3 rounded-lg border border-red-100 text-center mb-5 font-medium">
-                                {err}
-                            </div>
-                        )}
-
-                        {msg && (
-                            <div className="bg-green-50/50 text-green-700 text-sm py-2.5 px-3 rounded-lg border border-green-100 text-center mb-5 font-medium">
-                                {msg}
-                            </div>
-                        )}
-
-                        {/* STEP 1 FORM */}
-                        {step === 1 && (
-                            <form onSubmit={handleRequestOtp} className="space-y-4">
-                                <div>
-                                    <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Admin Email</label>
-                                    <div className="relative">
-                                        <Mail className="absolute left-3.5 top-3.5 h-[18px] w-[18px] text-gray-400" />
-                                        <input
-                                            type="email"
-                                            required
-                                            value={username}
-                                            onChange={(e) => setUsername(e.target.value)}
-                                            className="w-full bg-[#fafafa] border-[1.5px] border-[#e8e8e8] text-gray-800 rounded-lg py-3 pl-[42px] pr-4 focus:border-[#CA0002] focus:ring-[3px] focus:ring-[#CA0002]/10 outline-none transition-all duration-200 placeholder-gray-300"
-                                            placeholder="Enter your registered role email"
-                                        />
-                                    </div>
-                                </div>
-
-                                <button
-                                    type="submit"
-                                    disabled={loading}
-                                    className="w-full bg-[#CA0002] hover:bg-[#b10002] text-white font-semibold py-3.5 rounded-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50 mt-6 shadow-[0_4px_14px_rgba(202,0,2,0.25)] hover:shadow-[0_6px_20px_rgba(202,0,2,0.35)] hover:-translate-y-[1px]"
-                                >
-                                    {loading ? "Sending OTP..." : "Send OTP"}
-                                    {!loading && <ArrowRight className="h-4 w-4" />}
-                                </button>
-                            </form>
-                        )}
-
-                        {/* STEP 2 FORM */}
-                        {step === 2 && (
-                            <form onSubmit={handleVerifyOtp} className="space-y-4">
-                                <div>
-                                    <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Enter OTP</label>
-                                    <div className="relative">
-                                        <KeyRound className="absolute left-3.5 top-3.5 h-[18px] w-[18px] text-gray-400" />
-                                        <input
-                                            type="text"
-                                            required
-                                            value={otp}
-                                            onChange={(e) => setOtp(e.target.value)}
-                                            className="w-full bg-[#fafafa] border-[1.5px] border-[#e8e8e8] text-gray-800 rounded-lg py-3 pl-[42px] pr-4 focus:border-[#CA0002] focus:ring-[3px] focus:ring-[#CA0002]/10 outline-none transition-all duration-200 placeholder-gray-300"
-                                            placeholder="6-digit code"
-                                            maxLength={6}
-                                        />
-                                    </div>
-                                </div>
-
-                                <button
-                                    type="submit"
-                                    disabled={loading}
-                                    className="w-full bg-[#CA0002] hover:bg-[#b10002] text-white font-semibold py-3.5 rounded-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50 mt-6 shadow-[0_4px_14px_rgba(202,0,2,0.25)] hover:shadow-[0_6px_20px_rgba(202,0,2,0.35)] hover:-translate-y-[1px]"
-                                >
-                                    {loading ? "Verifying..." : "Verify OTP"}
-                                    {!loading && <ArrowRight className="h-4 w-4" />}
-                                </button>
-
-                                <div className="text-center mt-4">
-                                    <button
-                                        type="button"
-                                        onClick={() => setStep(1)}
-                                        className="text-xs font-semibold text-gray-400 hover:text-[#CA0002] transition-colors"
-                                    >
-                                        Didn't receive an email? Go back
-                                    </button>
-                                </div>
-                            </form>
-                        )}
-
-                        {/* STEP 3 FORM */}
-                        {step === 3 && (
-                            <form onSubmit={handleResetPassword} className="space-y-4">
-                                <div>
-                                    <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">New Password</label>
-                                    <div className="relative">
-                                        <Lock className="absolute left-3.5 top-3.5 h-[18px] w-[18px] text-gray-400" />
-                                        <input
-                                            type="password"
-                                            required
-                                            value={newPassword}
-                                            onChange={(e) => setNewPassword(e.target.value)}
-                                            className="w-full bg-[#fafafa] border-[1.5px] border-[#e8e8e8] text-gray-800 rounded-lg py-3 pl-[42px] pr-4 focus:border-[#CA0002] focus:ring-[3px] focus:ring-[#CA0002]/10 outline-none transition-all duration-200 placeholder-gray-300"
-                                            placeholder="••••••••"
-                                            minLength={6}
-                                        />
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Confirm Password</label>
-                                    <div className="relative">
-                                        <Lock className="absolute left-3.5 top-3.5 h-[18px] w-[18px] text-gray-400" />
-                                        <input
-                                            type="password"
-                                            required
-                                            value={confirmPassword}
-                                            onChange={(e) => setConfirmPassword(e.target.value)}
-                                            className="w-full bg-[#fafafa] border-[1.5px] border-[#e8e8e8] text-gray-800 rounded-lg py-3 pl-[42px] pr-4 focus:border-[#CA0002] focus:ring-[3px] focus:ring-[#CA0002]/10 outline-none transition-all duration-200 placeholder-gray-300"
-                                            placeholder="••••••••"
-                                            minLength={6}
-                                        />
-                                    </div>
-                                </div>
-
-                                <button
-                                    type="submit"
-                                    disabled={loading}
-                                    className="w-full bg-[#CA0002] hover:bg-[#b10002] text-white font-semibold py-3.5 rounded-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50 mt-6 shadow-[0_4px_14px_rgba(202,0,2,0.25)] hover:shadow-[0_6px_20px_rgba(202,0,2,0.35)] hover:-translate-y-[1px]"
-                                >
-                                    {loading ? "Resetting..." : "Reset Password"}
-                                    {!loading && <ArrowRight className="h-4 w-4" />}
-                                </button>
-                            </form>
-                        )}
-
-                        {step === 1 && (
-                            <p className="mt-8 text-center text-xs text-gray-400 tracking-wide">
-                                Remember your password?{" "}
-                                <Link to="/admin/login" className="text-[#CA0002] font-semibold hover:underline">
-                                    Sign In
-                                </Link>
-                            </p>
-                        )}
-                    </div>
-                </div>
-
-                {/* Right Side: Image/Branding */}
-                <div className="hidden md:flex w-full md:w-1/2 relative bg-gray-900 order-1 md:order-2 items-center justify-center overflow-hidden">
-                    <div
-                        className="absolute inset-0 w-full h-full opacity-30 mix-blend-overlay pointer-events-none"
-                        style={{
-                            backgroundImage: 'radial-gradient(circle at center, #CA0002 0%, transparent 70%)'
-                        }}
-                    />
-                    <img
-                        src="/assets/tiet-bg .webp"
-                        alt="Admin Portal"
-                        className="absolute inset-0 w-full h-full object-cover"
-                    />
-
-                    <div className="relative z-10 text-center p-8 flex flex-col items-center justify-center">
-                        <div
-                            className="bg-white p-3 rounded-xl mb-6 shadow-2xl inline-flex items-center justify-center"
-                            style={{ width: 64, height: 64 }}
-                        >
-                            <img src="/assets/ti_logo.png" alt="ARC Logo" className="w-full h-full object-contain p-1" />
-                        </div>
-                        <h2 className="text-2xl font-bold text-white mb-2 tracking-tight">ARC Admin</h2>
-                        <p className="text-gray-300 text-sm max-w-[240px] text-center font-medium leading-relaxed">
-                            Secure access recovery channel for Alumni Events Portal.
-                        </p>
-                    </div>
-                </div>
-
+            {/* Step tracker */}
+            <div className="fp-steps">
+              {[1, 2, 3].map((s, i) => (
+                <>
+                  <div key={s} className={`fp-step${step === s ? " active" : step > s ? " done" : ""}`}>
+                    {step > s ? <CheckCircle size={13} /> : s}
+                  </div>
+                  {i < 2 && <div key={`line-${s}`} className={`fp-step-line${step > s ? " done" : ""}`} />}
+                </>
+              ))}
             </div>
+
+            <h1 className="fp-headline">{TITLES[step - 1]}</h1>
+            <p className="fp-sub">{SUBS[step - 1]}</p>
+
+            {err && <div className="fp-error"><span>⚠</span>{err}</div>}
+            {msg && <div className="fp-success"><CheckCircle size={14} />{msg}</div>}
+
+            {/* Step 1 */}
+            {step === 1 && (
+              <form onSubmit={requestOtp}>
+                <div className="fp-field">
+                  <label className="fp-label">Admin Username / Email</label>
+                  <div className="fp-input-wrap">
+                    <Mail size={16} className="fp-input-icon" />
+                    <input type="email" required placeholder="your@email.com" value={username} onChange={e => setUsername(e.target.value)} className="fp-input" />
+                  </div>
+                </div>
+                <button type="submit" className="fp-btn" disabled={loading}>
+                  {loading ? <span className="fp-btn-spin" /> : <><span>Send OTP</span><ArrowRight size={15} /></>}
+                </button>
+              </form>
+            )}
+
+            {/* Step 2 */}
+            {step === 2 && (
+              <form onSubmit={verifyOtp}>
+                <div className="fp-field">
+                  <label className="fp-label">6-Digit OTP</label>
+                  <div className="fp-input-wrap">
+                    <KeyRound size={16} className="fp-input-icon" />
+                    <input type="text" required placeholder="123456" maxLength={6} value={otp} onChange={e => setOtp(e.target.value)} className="fp-input" />
+                  </div>
+                </div>
+                <button type="submit" className="fp-btn" disabled={loading}>
+                  {loading ? <span className="fp-btn-spin" /> : <><span>Verify Code</span><ArrowRight size={15} /></>}
+                </button>
+                <div style={{ textAlign: "center", marginTop: 14 }}>
+                  <button type="button" onClick={() => { clear(); setStep(1); }} className="fp-back">← Didn't get a code? Go back</button>
+                </div>
+              </form>
+            )}
+
+            {/* Step 3 */}
+            {step === 3 && (
+              <form onSubmit={resetPassword}>
+                <div className="fp-field">
+                  <label className="fp-label">New Password</label>
+                  <div className="fp-input-wrap">
+                    <Lock size={16} className="fp-input-icon" />
+                    <input type="password" required placeholder="••••••••" minLength={6} value={newPassword} onChange={e => setNewPassword(e.target.value)} className="fp-input" />
+                  </div>
+                </div>
+                <div className="fp-field">
+                  <label className="fp-label">Confirm Password</label>
+                  <div className="fp-input-wrap">
+                    <Lock size={16} className="fp-input-icon" />
+                    <input type="password" required placeholder="••••••••" minLength={6} value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} className="fp-input" />
+                  </div>
+                </div>
+                <button type="submit" className="fp-btn" disabled={loading}>
+                  {loading ? <span className="fp-btn-spin" /> : <><span>Reset Password</span><ArrowRight size={15} /></>}
+                </button>
+              </form>
+            )}
+
+            <div className="fp-footer">
+              Remember your password?{" "}
+              <Link to="/admin/login">Sign in</Link>
+            </div>
+          </div>
         </div>
-    );
+      </div>
+    </>
+  );
 }

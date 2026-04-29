@@ -1,224 +1,508 @@
 import { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom";
 import { useAdminEvent } from "../context/AdminEventContext";
-import { FaBars, FaTimes, FaHome, FaCalendar, FaImages, FaSignOutAlt, FaHistory, FaEnvelope } from "react-icons/fa";
+import { CalendarDays, Images, LogOut, Menu, X, ChevronDown, Zap } from "lucide-react";
+
+const S = `
+  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+  :root {
+    --sb-bg: #08080f;
+    --sb-surface: #0d0d18;
+    --sb-border: rgba(255,255,255,0.06);
+    --sb-border-hi: rgba(255,255,255,0.1);
+    --sb-accent: #ff4d00;
+    --sb-accent2: #ffc447;
+    --sb-text: #f0ece4;
+    --sb-muted: #7a7a8c;
+    --sb-dim: #383850;
+    --sb-font-d: 'Bebas Neue', sans-serif;
+    --sb-font: 'Plus Jakarta Sans', sans-serif;
+  }
+
+  /* ─── SHELL ─── */
+  .asb {
+    width: 260px;
+    flex-shrink: 0;
+    background: var(--sb-bg);
+    border-right: 1px solid var(--sb-border);
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    position: sticky;
+    top: 0;
+    font-family: var(--sb-font);
+    overflow: hidden;
+    z-index: 50;
+  }
+
+  /* top accent line */
+  .asb-topline {
+    height: 2px;
+    background: linear-gradient(90deg, var(--sb-accent) 0%, var(--sb-accent2) 50%, transparent 100%);
+    flex-shrink: 0;
+  }
+
+  /* all direct children above z:0 so they appear over noise pseudo */
+  .asb > * { position: relative; z-index: 1; }
+
+  /* ─── HEADER ─── */
+  .asb-header {
+    padding: 22px 20px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+
+  .asb-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+  }
+
+  .asb-logo-img-wrap {
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    background: rgba(255,77,0,0.1);
+    border: 1px solid rgba(255,77,0,0.2);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; overflow: hidden;
+  }
+
+  .asb-logo-img {
+    width: 28px; height: 28px;
+    object-fit: contain;
+  }
+
+  .asb-logo-text {
+    font-family: var(--sb-font-d);
+    font-size: 17px;
+    letter-spacing: 2px;
+    color: var(--sb-text);
+    line-height: 1;
+  }
+
+  .asb-logo-text em {
+    font-style: normal;
+    background: linear-gradient(135deg, #ff4d00, #ffc447);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .asb-close-btn {
+    display: none;
+    background: none;
+    border: 1px solid var(--sb-border);
+    color: var(--sb-muted);
+    border-radius: 8px;
+    padding: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    align-items: center;
+  }
+  .asb-close-btn:hover { color: var(--sb-accent); border-color: rgba(255,77,0,0.3); }
+  @media (max-width: 1023px) { .asb-close-btn { display: flex; } }
+
+  /* ─── DIVIDER ─── */
+  .asb-divider {
+    height: 1px;
+    margin: 0 20px;
+    background: var(--sb-border);
+    flex-shrink: 0;
+  }
+
+  /* ─── EVENT SELECTOR ─── */
+  .asb-event-wrap {
+    padding: 16px 16px 14px;
+    flex-shrink: 0;
+  }
+
+  .asb-event-label {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--sb-dim);
+    margin-bottom: 9px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .asb-select-wrap { position: relative; }
+
+  .asb-select {
+    width: 100%;
+    background: var(--sb-surface);
+    border: 1px solid var(--sb-border-hi);
+    border-radius: 11px;
+    padding: 10px 38px 10px 13px;
+    color: var(--sb-text);
+    font-family: var(--sb-font);
+    font-size: 13px;
+    font-weight: 600;
+    outline: none;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    box-sizing: border-box;
+  }
+
+  .asb-select:focus {
+    border-color: rgba(255,77,0,0.5);
+    box-shadow: 0 0 0 3px rgba(255,77,0,0.08);
+  }
+
+  .asb-select option { background: #0d0d18; color: #f0ece4; }
+
+  .asb-select-chevron {
+    position: absolute;
+    right: 11px; top: 50%;
+    transform: translateY(-50%);
+    color: var(--sb-dim);
+    pointer-events: none;
+    transition: transform 0.2s;
+  }
+
+  /* ─── NAV ─── */
+  .asb-nav {
+    flex: 1;
+    padding: 8px 12px 12px;
+    overflow-y: auto;
+    scrollbar-width: none;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+  .asb-nav::-webkit-scrollbar { display: none; }
+
+  .asb-nav-section {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--sb-dim);
+    padding: 12px 8px 6px;
+  }
+
+  .asb-link {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    padding: 11px 12px;
+    border-radius: 11px;
+    text-decoration: none;
+    color: var(--sb-muted);
+    font-size: 13px;
+    font-weight: 600;
+    transition: all 0.18s ease;
+    border: 1px solid transparent;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .asb-link:hover {
+    color: var(--sb-text);
+    background: rgba(255,255,255,0.04);
+    border-color: var(--sb-border);
+  }
+
+  .asb-link.active {
+    color: var(--sb-text);
+    background: rgba(255,77,0,0.08);
+    border-color: rgba(255,77,0,0.2);
+  }
+
+  /* left accent bar on active */
+  .asb-link.active::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 25%; bottom: 25%;
+    width: 2.5px;
+    border-radius: 0 2px 2px 0;
+    background: var(--sb-accent);
+    box-shadow: 0 0 8px rgba(255,77,0,0.6);
+  }
+
+  .asb-link-icon {
+    width: 34px; height: 34px;
+    border-radius: 9px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid transparent;
+    transition: all 0.18s;
+  }
+
+  .asb-link.active .asb-link-icon {
+    background: rgba(255,77,0,0.12);
+    border-color: rgba(255,77,0,0.2);
+    color: var(--sb-accent);
+  }
+
+  .asb-link:hover .asb-link-icon {
+    background: rgba(255,255,255,0.08);
+  }
+
+  /* ─── ACTIVE EVENT CHIP ─── */
+  .asb-event-chip {
+    margin: 4px 12px 12px;
+    padding: 10px 14px;
+    border-radius: 12px;
+    background: rgba(255,77,0,0.06);
+    border: 1px solid rgba(255,77,0,0.15);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+
+  .asb-event-chip-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--sb-accent);
+    box-shadow: 0 0 8px rgba(255,77,0,0.6);
+    flex-shrink: 0;
+    animation: chipPulse 2.5s ease-in-out infinite;
+  }
+  @keyframes chipPulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+  .asb-event-chip-text {
+    flex: 1; min-width: 0;
+  }
+
+  .asb-event-chip-label {
+    font-size: 9px; font-weight: 700; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--sb-accent); display: block; margin-bottom: 2px;
+  }
+
+  .asb-event-chip-name {
+    font-size: 12px; font-weight: 700; color: var(--sb-text);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;
+  }
+
+  /* ─── BOTTOM ─── */
+  .asb-bottom {
+    padding: 12px;
+    border-top: 1px solid var(--sb-border);
+    flex-shrink: 0;
+  }
+
+  .asb-logout {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 11px 14px;
+    border-radius: 11px;
+    width: 100%;
+    background: none;
+    border: 1px solid var(--sb-border);
+    color: var(--sb-muted);
+    font-family: var(--sb-font);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .asb-logout:hover {
+    color: #f87171;
+    border-color: rgba(248,113,113,0.3);
+    background: rgba(248,113,113,0.06);
+  }
+
+  .asb-logout-icon {
+    width: 32px; height: 32px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(255,255,255,0.04); flex-shrink: 0; transition: all 0.2s;
+  }
+
+  .asb-logout:hover .asb-logout-icon {
+    background: rgba(248,113,113,0.12);
+    color: #f87171;
+  }
+
+  /* ─── MOBILE BURGER ─── */
+  .asb-burger {
+    display: none;
+    position: fixed;
+    top: 16px; left: 16px;
+    z-index: 9999;
+    background: linear-gradient(135deg, #ff5200, #ff7033);
+    border: none; border-radius: 10px;
+    width: 42px; height: 42px;
+    align-items: center; justify-content: center;
+    color: #fff; cursor: pointer;
+    box-shadow: 0 4px 16px rgba(255,77,0,0.4);
+    transition: all 0.2s ease;
+  }
+  .asb-burger:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(255,77,0,0.5); }
+
+  @media (max-width: 1023px) {
+    .asb-burger { display: flex; }
+
+    .asb {
+      position: fixed;
+      inset-y: 0; left: 0;
+      transform: translateX(-100%);
+      transition: transform 300ms cubic-bezier(0.25, 0.9, 0.25, 1);
+      box-shadow: none;
+      z-index: 200;
+    }
+
+    .asb.open {
+      transform: translateX(0);
+      box-shadow: 12px 0 60px rgba(0,0,0,0.8);
+    }
+  }
+
+  /* ─── MOBILE OVERLAY ─── */
+  .asb-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.65);
+    backdrop-filter: blur(4px);
+    z-index: 199;
+  }
+  @media (max-width: 1023px) { .asb-overlay { display: block; } }
+`;
+
+const NAV = [
+  { to: "/admin/events", icon: CalendarDays, label: "Events" },
+  { to: "/admin/memories", icon: Images,     label: "Photos" },
+];
 
 export default function AdminSidebar() {
   const { events, activeEvent, setActiveEvent } = useAdminEvent();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [showHint, setShowHint] = useState(false);
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    const hasSeenHint = localStorage.getItem("admin_mobile_hint_seen");
-    if (!hasSeenHint && window.innerWidth < 1024) {
-      setShowHint(true);
-      setTimeout(() => {
-        setShowHint(false);
-        localStorage.setItem("admin_mobile_hint_seen", "true");
-      }, 4000);
-    }
-  }, []);
+    document.body.style.overflow = open ? "hidden" : "";
+    return () => { document.body.style.overflow = ""; };
+  }, [open]);
 
-  const closeMobileMenu = () => setIsMobileMenuOpen(false);
+  const close = () => setOpen(false);
 
   const handleLogout = async () => {
     try {
       const token = localStorage.getItem("adminToken");
       await fetch("/api/admin/auth/logout", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       });
-    } catch (err) {
-      console.error("Logout error:", err);
-    } finally {
+    } catch {}
+    finally {
       localStorage.removeItem("adminToken");
       window.location.href = "/admin/login";
     }
   };
 
-  const linkClass = ({ isActive }) =>
-    `flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 text-sm font-medium ${isActive
-      ? "text-white shadow-sm"
-      : "text-gray-500 hover:text-gray-800 hover:bg-gray-50"
-    }`;
-
-  const linkStyle = (isActive) =>
-    isActive
-      ? { background: "#CA0002", boxShadow: "0 2px 8px rgba(202, 0, 2, 0.2)" }
-      : {};
-
   return (
     <>
-      {/* Mobile hamburger */}
-      <button
-        onClick={() => {
-          setIsMobileMenuOpen(!isMobileMenuOpen);
-          setShowHint(false);
-        }}
-        className="lg:hidden fixed top-4 left-4 z-[9999] text-white p-3.5 rounded-xl transition-all active:scale-95"
-        aria-label="Toggle menu"
-        style={{
-          background: "#CA0002",
-          boxShadow: "0 4px 16px rgba(202, 0, 2, 0.3)",
-          width: 52,
-          height: 52,
-        }}
-      >
-        {isMobileMenuOpen ? <FaTimes size={22} /> : <FaBars size={22} />}
+      <style>{S}</style>
+
+      {/* Mobile burger */}
+      <button className="asb-burger" onClick={() => setOpen(s => !s)} aria-label="Toggle menu">
+        {open ? <X size={18} /> : <Menu size={18} />}
       </button>
 
-      {/* Hint */}
-      {showHint && (
-        <div
-          className="lg:hidden fixed top-20 left-4 z-[9999] text-white px-4 py-2 rounded-lg shadow-xl animate-bounce max-w-xs text-sm font-medium"
-          style={{ background: "#CA0002" }}
-        >
-          👈 Tap here for navigation
-        </div>
-      )}
-
       {/* Mobile overlay */}
-      {isMobileMenuOpen && (
-        <div
-          className="lg:hidden fixed inset-0 z-[45] backdrop-blur-sm"
-          style={{ background: "rgba(0, 0, 0, 0.3)" }}
-          onClick={closeMobileMenu}
-        />
-      )}
+      {open && <div className="asb-overlay" onClick={close} />}
 
-      {/* Sidebar */}
-      <aside
-        className={`
-          fixed lg:static inset-y-0 left-0 z-[50]
-          w-72 flex flex-col overflow-hidden
-          transform transition-transform duration-300 ease-in-out
-          ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
-        `}
-        style={{
-          background: "#ffffff",
-          borderRight: "1px solid #eee",
-          boxShadow: "2px 0 20px rgba(0, 0, 0, 0.04)",
-        }}
-      >
+      <aside className={`asb${open ? " open" : ""}`}>
+
+        {/* Top accent line */}
+        <div className="asb-topline" />
+
         {/* Header */}
-        <div className="px-6 py-5" style={{ borderBottom: "1px solid #f0f0f0" }}>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div
-                className="flex items-center justify-center rounded-lg overflow-hidden bg-white"
-                style={{
-                  width: 38,
-                  height: 38,
-                  boxShadow: "0 2px 8px rgba(202, 0, 2, 0.2)",
-                }}
-              >
-                <img
-                  src="/assets/ti_logo.png"
-                  alt="ARC Logo"
-                  className="w-full h-full object-contain p-1"
-                />
-              </div>
-              <div>
-                <h2 className="text-lg font-bold text-gray-800 tracking-tight">
-                  ARC Admin
-                </h2>
-                <p className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: "#CA0002" }}>
-                  Dashboard
-                </p>
-              </div>
+        <div className="asb-header">
+          <a href="/" className="asb-logo">
+            <div className="asb-logo-img-wrap">
+              <img
+                src="/assets/bglogo.png"
+                alt="Club Bexley"
+                className="asb-logo-img"
+                onError={e => { e.target.style.display = "none"; }}
+              />
             </div>
+            <div>
+              <div className="asb-logo-text">CLUB <em>BEXLEY</em></div>
+            </div>
+          </a>
+          <button className="asb-close-btn" onClick={close} aria-label="Close menu">
+            <X size={15} />
+          </button>
+        </div>
 
-            <button
-              onClick={closeMobileMenu}
-              className="lg:hidden p-2 rounded-lg text-gray-400 hover:text-gray-600 transition-colors"
+        <div className="asb-divider" />
+
+        {/* Event selector */}
+        <div className="asb-event-wrap">
+          <span className="asb-event-label">
+            <Zap size={9} /> Active Event
+          </span>
+          <div className="asb-select-wrap">
+            <select
+              className="asb-select"
+              value={activeEvent?._id || ""}
+              onChange={e => {
+                setActiveEvent(events.find(ev => ev._id === e.target.value));
+                close();
+              }}
             >
-              <FaTimes size={18} />
-            </button>
+              {events.length === 0 && <option value="">No Events</option>}
+              {events.map(ev => (
+                <option key={ev._id} value={ev._id}>{ev.name}</option>
+              ))}
+            </select>
+            <ChevronDown size={13} className="asb-select-chevron" />
           </div>
         </div>
 
-        {/* Event Selector */}
-        <div className="px-5 py-4" style={{ borderBottom: "1px solid #f0f0f0" }}>
-          <label className="text-[10px] uppercase font-bold tracking-wider text-gray-400 mb-1.5 block">
-            Event Scope
-          </label>
-          <select
-            value={activeEvent?._id || ""}
-            onChange={(e) => {
-              setActiveEvent(events.find((ev) => ev._id === e.target.value));
-              closeMobileMenu();
-            }}
-            className="w-full py-2.5 px-3 rounded-lg text-sm text-gray-700 appearance-none cursor-pointer outline-none transition-all"
-            style={{
-              background: "#fafafa",
-              border: "1.5px solid #e8e8e8",
-            }}
-            onFocus={(e) => {
-              e.currentTarget.style.borderColor = "#CA0002";
-              e.currentTarget.style.boxShadow = "0 0 0 3px rgba(202, 0, 2, 0.06)";
-            }}
-            onBlur={(e) => {
-              e.currentTarget.style.borderColor = "#e8e8e8";
-              e.currentTarget.style.boxShadow = "none";
-            }}
-          >
-            {events.length === 0 && <option>No Events</option>}
-            {events.map((ev) => (
-              <option key={ev._id} value={ev._id}>
-                {ev.name}
-              </option>
-            ))}
-          </select>
-        </div>
+        <div className="asb-divider" />
 
-        {/* Navigation */}
-        <nav className="flex-1 px-4 py-4 space-y-1 overflow-y-auto" style={{ minHeight: 0 }}>
-          {[
-            { to: "/admin/dashboard", icon: FaHome, label: "Dashboard" },
-            { to: "/admin/events", icon: FaCalendar, label: "Events" },
-            { to: "/admin/memories", icon: FaImages, label: "Photos" },
-            { to: "/admin/emails", icon: FaEnvelope, label: "Email Tracking" },
-            { to: "/admin/logs", icon: FaHistory, label: "Audit Logs" },
-          ].map(({ to, icon: Icon, label }) => (
+        {/* Nav links */}
+        <nav className="asb-nav">
+          <div className="asb-nav-section">Manage</div>
+          {NAV.map(({ to, icon: Icon, label }) => (
             <NavLink
               key={to}
               to={to}
-              className={linkClass}
-              onClick={closeMobileMenu}
-              style={({ isActive }) => linkStyle(isActive)}
+              onClick={close}
+              className={({ isActive }) => `asb-link${isActive ? " active" : ""}`}
             >
-              <Icon size={16} />
-              <span>{label}</span>
+              <span className="asb-link-icon">
+                <Icon size={15} />
+              </span>
+              {label}
             </NavLink>
           ))}
         </nav>
 
-        {/* Bottom */}
-        <div className="mt-auto px-4 pb-4 pt-2" style={{ borderTop: "1px solid #f0f0f0" }}>
-          <button
-            onClick={handleLogout}
-            className="flex items-center justify-center gap-2 px-4 py-3 w-full rounded-lg cursor-pointer transition-all duration-200 text-sm font-medium"
-            style={{
-              color: "#CA0002",
-              background: "rgba(202, 0, 2, 0.04)",
-              border: "1px solid rgba(202, 0, 2, 0.1)",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = "rgba(202, 0, 2, 0.08)";
-              e.currentTarget.style.borderColor = "rgba(202, 0, 2, 0.2)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = "rgba(202, 0, 2, 0.04)";
-              e.currentTarget.style.borderColor = "rgba(202, 0, 2, 0.1)";
-            }}
-          >
-            <FaSignOutAlt size={15} />
-            <span>Sign Out</span>
+        {/* Active event chip */}
+        {activeEvent && (
+          <div className="asb-event-chip">
+            <div className="asb-event-chip-dot" />
+            <div className="asb-event-chip-text">
+              <span className="asb-event-chip-label">Viewing</span>
+              <span className="asb-event-chip-name">{activeEvent.name}</span>
+            </div>
+          </div>
+        )}
+
+        {/* Logout */}
+        <div className="asb-bottom">
+          <button className="asb-logout" onClick={handleLogout}>
+            <span className="asb-logout-icon">
+              <LogOut size={14} />
+            </span>
+            Sign Out
           </button>
         </div>
+
       </aside>
     </>
   );

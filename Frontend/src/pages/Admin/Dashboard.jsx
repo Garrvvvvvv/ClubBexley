@@ -2,16 +2,173 @@ import { useEffect, useState } from "react";
 import { useAdminEvent } from "../../context/AdminEventContext";
 import { apiAdmin } from "../../lib/apiAdmin";
 import { toast } from "react-toastify";
-import { 
+import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell
 } from 'recharts';
-import { FaUsers, FaCheckCircle, FaHourglassHalf, FaUserShield, FaChartLine } from "react-icons/fa";
+import { Users, CheckCircle, Clock, ShieldCheck, TrendingUp } from "lucide-react";
+
+const S = `
+  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+  :root {
+    --db-bg: #06060b; --db-card: #0d0d16; --db-elevated: #121220;
+    --db-border: rgba(255,255,255,0.07); --db-accent: #ff4d00; --db-accent2: #ffc447;
+    --db-text: #f0ece4; --db-muted: #888898; --db-dim: #3a3a50;
+    --db-green: #34d399; --db-amber: #fbbf24; --db-blue: #60a5fa;
+    --db-font-d: 'Bebas Neue', sans-serif; --db-font: 'Plus Jakarta Sans', sans-serif;
+  }
+
+  .db-page { font-family: var(--db-font); color: var(--db-text); }
+
+  /* empty state */
+  .db-empty {
+    min-height: 60vh; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    background: var(--db-card); border: 1px solid var(--db-border);
+    border-radius: 24px; text-align: center; padding: 48px 24px;
+  }
+  .db-empty-icon {
+    width: 80px; height: 80px; border-radius: 50%;
+    background: rgba(255,77,0,0.1); border: 1px solid rgba(255,77,0,0.2);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--db-accent); margin: 0 auto 24px;
+  }
+  .db-empty h2 { font-family: var(--db-font-d); font-size: 32px; color: var(--db-text); margin: 0 0 8px; }
+  .db-empty p { font-size: 14px; color: var(--db-muted); max-width: 320px; margin: 0 auto; line-height: 1.6; }
+
+  /* page header */
+  .db-header {
+    background: var(--db-card); border: 1px solid var(--db-border);
+    border-radius: 20px; padding: 32px; margin-bottom: 28px;
+    position: relative; overflow: hidden;
+    display: flex; align-items: center; justify-content: space-between; gap: 24px;
+    flex-wrap: wrap;
+  }
+  .db-header-topline {
+    position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, transparent, var(--db-accent) 30%, var(--db-accent2) 60%, transparent);
+    box-shadow: 0 0 20px rgba(255,77,0,0.4);
+  }
+  .db-header-orb {
+    position: absolute; width: 300px; height: 300px;
+    top: -80px; right: -80px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,77,0,0.07) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .db-header-badge {
+    display: inline-block; font-size: 9px; font-weight: 700; letter-spacing: 2.5px;
+    text-transform: uppercase; color: var(--db-accent);
+    background: rgba(255,77,0,0.1); border: 1px solid rgba(255,77,0,0.2);
+    padding: 3px 12px; border-radius: 100px; margin-bottom: 10px;
+  }
+  .db-header h1 {
+    font-family: var(--db-font-d); font-size: 40px; line-height: 0.9;
+    color: var(--db-text); margin: 0; letter-spacing: 1px;
+  }
+  .db-revenue-card {
+    background: rgba(255,77,0,0.08); border: 1px solid rgba(255,77,0,0.2);
+    border-radius: 16px; padding: 18px 24px; text-align: right; flex-shrink: 0;
+  }
+  .db-revenue-label {
+    font-size: 9px; font-weight: 700; letter-spacing: 2.5px; text-transform: uppercase;
+    color: var(--db-muted); margin-bottom: 6px;
+  }
+  .db-revenue-value {
+    font-family: var(--db-font-d); font-size: 36px; color: var(--db-accent2);
+    letter-spacing: 1px; line-height: 1;
+  }
+
+  /* stat cards */
+  .db-kpi-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 16px; margin-bottom: 28px;
+  }
+  @media (max-width: 1100px) { .db-kpi-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 600px) { .db-kpi-grid { grid-template-columns: 1fr; } }
+
+  .db-stat {
+    background: var(--db-card); border: 1px solid var(--db-border);
+    border-radius: 18px; padding: 22px; position: relative; overflow: hidden;
+    transition: transform 0.3s ease, border-color 0.3s ease;
+  }
+  .db-stat:hover { transform: translateY(-3px); }
+  .db-stat-bar { position: absolute; bottom: 0; left: 0; right: 0; height: 2px; }
+  .db-stat-icon {
+    width: 40px; height: 40px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 16px; flex-shrink: 0;
+  }
+  .db-stat-label {
+    font-size: 9px; font-weight: 700; letter-spacing: 2.5px; text-transform: uppercase;
+    color: var(--db-dim); margin-bottom: 6px;
+  }
+  .db-stat-value {
+    font-family: var(--db-font-d); font-size: 44px; line-height: 1;
+    color: var(--db-text); letter-spacing: 1px;
+  }
+  .db-stat-trend {
+    margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--db-border);
+    font-size: 11px; font-weight: 600; color: var(--db-muted);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .db-stat-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+
+  /* charts */
+  .db-charts-grid {
+    display: grid; grid-template-columns: 1fr 1fr 1fr;
+    gap: 20px;
+  }
+  @media (max-width: 1100px) { .db-charts-grid { grid-template-columns: 1fr; } }
+
+  .db-chart-card {
+    background: var(--db-card); border: 1px solid var(--db-border);
+    border-radius: 20px; padding: 24px; position: relative; overflow: hidden;
+  }
+  .db-chart-card.span2 { grid-column: span 2; }
+  @media (max-width: 1100px) { .db-chart-card.span2 { grid-column: span 1; } }
+
+  .db-chart-title {
+    font-family: var(--db-font-d); font-size: 22px; color: var(--db-text);
+    margin: 0 0 4px; letter-spacing: 0.5px;
+  }
+  .db-chart-sub { font-size: 12px; color: var(--db-muted); margin: 0 0 24px; }
+
+  .db-timeframe {
+    display: flex; gap: 0; background: rgba(255,255,255,0.04);
+    border: 1px solid var(--db-border); border-radius: 10px; padding: 3px;
+  }
+  .db-tf-btn {
+    padding: 6px 14px; border-radius: 7px; font-family: var(--db-font);
+    font-size: 12px; font-weight: 700; background: none; border: none;
+    color: var(--db-muted); cursor: pointer; transition: all 0.2s;
+  }
+  .db-tf-btn.active { background: var(--db-accent); color: #fff; box-shadow: 0 4px 12px rgba(255,77,0,0.3); }
+
+  /* pie legend */
+  .db-legend { margin-top: 16px; display: flex; flex-direction: column; gap: 8px; }
+  .db-legend-row { display: flex; justify-content: space-between; align-items: center; font-size: 12px; }
+  .db-legend-left { display: flex; align-items: center; gap: 8px; }
+  .db-legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .db-legend-name { color: var(--db-muted); font-weight: 600; }
+  .db-legend-val { color: var(--db-text); font-weight: 700; }
+
+  /* pie total overlay */
+  .db-pie-wrap { position: relative; }
+  .db-pie-center {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    text-align: center; pointer-events: none;
+  }
+  .db-pie-total { font-family: var(--db-font-d); font-size: 32px; color: var(--db-text); line-height: 1; }
+  .db-pie-label { font-size: 9px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--db-dim); margin-top: 2px; }
+`;
+
+const PIE_COLORS = ['#34d399', '#fbbf24', '#f87171'];
 
 export default function Dashboard() {
   const { activeEvent } = useAdminEvent();
   const [stats, setStats] = useState(null);
-  const [timeframe, setTimeframe] = useState('1W'); // '1W' or '1M'
+  const [timeframe, setTimeframe] = useState('1W');
   const [last30DaysTrend, setLast30DaysTrend] = useState([]);
 
   useEffect(() => {
@@ -23,276 +180,186 @@ export default function Dashboard() {
         .then(([statsRes, regsRes]) => {
           const baseData = statsRes.data;
           const regs = regsRes.data || [];
-          
-          // Calculate exact revenue from approved registrations
+
           const totalRevenue = regs
             .filter(r => r.status === "APPROVED")
             .reduce((sum, r) => sum + (Number(r.amount) || 0), 0);
 
-          // Build continuous 30-day history going backward from today
           const today = new Date();
           const trendArray = [];
-          
           for (let i = 29; i >= 0; i--) {
             const d = new Date(today);
             d.setDate(d.getDate() - i);
-            const dateString = d.toISOString().split('T')[0];
-            const shortDateStr = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-            
             trendArray.push({
-              fullDate: dateString,
-              name: shortDateStr, // X-Axis Label
+              fullDate: d.toISOString().split('T')[0],
+              name: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
               regs: 0
             });
           }
-          
-          // Map actual registrations to those continuous days
           regs.forEach(r => {
             if (r.createdAt) {
               const rDate = new Date(r.createdAt).toISOString().split('T')[0];
-              const targetDay = trendArray.find(t => t.fullDate === rDate);
-              if (targetDay) {
-                targetDay.regs++;
-              }
+              const t = trendArray.find(t => t.fullDate === rDate);
+              if (t) t.regs++;
             }
           });
+          setLast30DaysTrend(trendArray);
 
-          setLast30DaysTrend(trendArray); // Store full 30 days of data
+          const statusCount = { APPROVED: 0, PENDING: 0, REJECTED: 0 };
+          regs.forEach(r => { if (statusCount[r.status] !== undefined) statusCount[r.status]++; });
 
-          // Calculate exact status distribution
-          const statusCount = { 'APPROVED': 0, 'PENDING': 0, 'REJECTED': 0 };
-          regs.forEach(r => {
-            if (statusCount[r.status] !== undefined) {
-              statusCount[r.status]++;
-            }
-          });
-
-          const statusDistribution = [
-            { name: 'Approved', value: statusCount['APPROVED'] },
-            { name: 'Pending', value: statusCount['PENDING'] },
-            { name: 'Rejected', value: statusCount['REJECTED'] }
-          ];
-          
-          const extendedStats = {
+          setStats({
             ...baseData,
             revenue: totalRevenue,
-            statusDistribution
-          };
-          setStats(extendedStats);
+            statusDistribution: [
+              { name: 'Approved', value: statusCount.APPROVED },
+              { name: 'Pending', value: statusCount.PENDING },
+              { name: 'Rejected', value: statusCount.REJECTED },
+            ]
+          });
         })
-        .catch((err) => {
-          console.error(err);
-          toast.error("Failed to load dashboard data");
-        });
+        .catch(() => toast.error("Failed to load dashboard data"));
     }
   }, [activeEvent]);
 
-  // Derived state based on timeframe toggle
   const currentTrendData = timeframe === '1W' ? last30DaysTrend.slice(-7) : last30DaysTrend;
 
   if (!activeEvent) return (
-    <div className="h-[70vh] flex flex-col items-center justify-center bg-white rounded-3xl border border-gray-100 shadow-sm">
-      <div className="w-20 h-20 bg-red-50 text-[#CA0002] rounded-full flex items-center justify-center mb-6 border border-red-100 shadow-inner">
-        <FaChartLine size={32} />
+    <>
+      <style>{S}</style>
+      <div className="db-page">
+        <div className="db-empty">
+          <div className="db-empty-icon"><TrendingUp size={32} /></div>
+          <h2>Event Analytics</h2>
+          <p>Select an event from the sidebar to view its performance dashboard and metrics.</p>
+        </div>
       </div>
-      <h2 className="text-2xl font-black text-gray-800 mb-2">Event Analytics</h2>
-      <p className="text-lg font-medium text-gray-500 max-w-sm text-center">
-        Select an event from the sidebar to view its performance dashboard and metrics.
-      </p>
-    </div>
+    </>
   );
 
-  const COLORS = ['#22c55e', '#eab308', '#ef4444'];
+  const KPI = [
+    { label: "Total Registrations", value: stats?.total || 0, icon: <Users size={18} />, color: "#ff4d00", bg: "rgba(255,77,0,0.12)", trend: "+12% this week" },
+    { label: "Approved (Paid)", value: stats?.approved || 0, icon: <CheckCircle size={18} />, color: "#34d399", bg: "rgba(52,211,153,0.12)", trend: "Ready for event" },
+    { label: "Pending Review", value: stats?.pending || 0, icon: <Clock size={18} />, color: "#fbbf24", bg: "rgba(251,191,36,0.12)", trend: "Requires action" },
+    { label: "Active Controllers", value: stats?.controllers || 0, icon: <ShieldCheck size={18} />, color: "#60a5fa", bg: "rgba(96,165,250,0.12)", trend: "Managing access" },
+  ];
 
   return (
-    <div className="space-y-8 max-w-[1400px] mx-auto pb-12">
-      {/* Premium Page Header */}
-      <div
-        className="rounded-3xl p-8 relative overflow-hidden flex flex-col justify-center min-h-[160px]"
-        style={{
-          background: "linear-gradient(135deg, #CA0002, #ff4d4f)",
-          boxShadow: "0 10px 30px rgba(202, 0, 2, 0.2)",
-        }}
-      >
-        {/* Decorative elements */}
-        <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl transform translate-x-1/2 -translate-y-1/2 pattern-grid-lg"></div>
-        <div className="absolute bottom-0 left-10 w-40 h-40 bg-black opacity-10 rounded-full blur-2xl"></div>
-        
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <span className="bg-red-950/30 text-white/90 text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full backdrop-blur-md mb-3 inline-block border border-white/10">
-              Live Analytics Dashboard
-            </span>
-            <h1 className="text-4xl md:text-5xl font-black text-white tracking-tight drop-shadow-md">
-              {activeEvent.name}
-            </h1>
-          </div>
-          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20 text-right">
-            <p className="text-white/80 text-sm font-semibold uppercase tracking-wider mb-1">Total Revenue Est.</p>
-            <p className="text-3xl font-black text-white">₹{(stats?.revenue || 0).toLocaleString()}</p>
-          </div>
-        </div>
-      </div>
+    <>
+      <style>{S}</style>
+      <div className="db-page">
 
-      {/* Main KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard label="Total Registrations" value={stats?.total || 0} icon={<FaUsers />} accentColor="#CA0002" trend="+12% this week" />
-        <StatCard label="Approved (Paid)" value={stats?.approved || 0} icon={<FaCheckCircle />} accentColor="#22c55e" trend="Ready for event" />
-        <StatCard label="Pending Review" value={stats?.pending || 0} icon={<FaHourglassHalf />} accentColor="#eab308" trend="Requires action" />
-        <StatCard label="Active Controllers" value={stats?.controllers || 0} icon={<FaUserShield />} accentColor="#6366f1" trend="Managing access" />
-      </div>
-
-      {/* Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
-        {/* Main Trend Chart */}
-        <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] lg:col-span-2 relative overflow-hidden">
-          <div className="flex justify-between items-end mb-8 relative z-10">
-            <div>
-              <h3 className="text-xl font-black text-gray-800">Registration Trends</h3>
-              <p className="text-sm text-gray-500 font-medium">Daily registration velocity</p>
-            </div>
-            <div className="flex bg-gray-100 p-1 rounded-xl">
-              <button 
-                onClick={() => setTimeframe('1W')}
-                className={`px-4 py-1.5 rounded-lg text-sm font-bold transition-all ${timeframe === '1W' ? 'bg-white text-[#CA0002] shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
-              >
-                1 Week
-              </button>
-              <button 
-                onClick={() => setTimeframe('1M')}
-                className={`px-4 py-1.5 rounded-lg text-sm font-bold transition-all ${timeframe === '1M' ? 'bg-white text-[#CA0002] shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
-              >
-                1 Month
-              </button>
-            </div>
+        {/* Header */}
+        <div className="db-header">
+          <div className="db-header-topline" />
+          <div className="db-header-orb" />
+          <div style={{ position: "relative", zIndex: 1 }}>
+            <div className="db-header-badge">Live Analytics Dashboard</div>
+            <h1>{activeEvent.name}</h1>
           </div>
-          
-          <div className="h-[300px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={currentTrendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="colorRegs" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#CA0002" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#CA0002" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#9ca3af', fontSize: 12, fontWeight: 600 }} dy={10} minTickGap={20} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#9ca3af', fontSize: 12, fontWeight: 600 }} allowDecimals={false} />
-                <Tooltip 
-                  contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 25px rgba(0,0,0,0.1)', fontWeight: 'bold' }}
-                  itemStyle={{ color: '#CA0002' }}
-                  labelStyle={{ color: '#6b7280', marginBottom: '4px' }}
-                />
-                <Area type="monotone" dataKey="regs" name="Registrations" stroke="#CA0002" strokeWidth={4} fillOpacity={1} fill="url(#colorRegs)" activeDot={{ r: 8, strokeWidth: 0, fill: '#CA0002' }} />
-              </AreaChart>
-            </ResponsiveContainer>
+          <div className="db-revenue-card" style={{ position: "relative", zIndex: 1 }}>
+            <div className="db-revenue-label">Total Revenue Est.</div>
+            <div className="db-revenue-value">₹{(stats?.revenue || 0).toLocaleString()}</div>
           </div>
         </div>
 
-        {/* Status Breakdown Pie Chart */}
-        <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col">
-          <h3 className="text-xl font-black text-gray-800 mb-1">Status Overview</h3>
-          <p className="text-sm text-gray-500 font-medium mb-6">Approval distribution</p>
-          
-          <div className="flex-1 flex flex-col justify-center items-center relative">
-            <div className="h-[220px] w-full">
+        {/* KPI Cards */}
+        <div className="db-kpi-grid">
+          {KPI.map(k => (
+            <div key={k.label} className="db-stat" style={{ borderColor: `${k.color}22` }}>
+              <div className="db-stat-bar" style={{ background: `linear-gradient(90deg, ${k.color}, ${k.color}60)` }} />
+              <div className="db-stat-icon" style={{ background: k.bg, color: k.color }}>
+                {k.icon}
+              </div>
+              <div className="db-stat-label">{k.label}</div>
+              <div className="db-stat-value">{k.value}</div>
+              <div className="db-stat-trend">
+                <div className="db-stat-dot" style={{ background: k.color }} />
+                {k.trend}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Charts */}
+        <div className="db-charts-grid">
+
+          {/* Area Chart */}
+          <div className="db-chart-card span2">
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 24 }}>
+              <div>
+                <div className="db-chart-title">Registration Trends</div>
+                <div className="db-chart-sub">Daily registration velocity</div>
+              </div>
+              <div className="db-timeframe">
+                <button className={`db-tf-btn${timeframe === '1W' ? ' active' : ''}`} onClick={() => setTimeframe('1W')}>1 Week</button>
+                <button className={`db-tf-btn${timeframe === '1M' ? ' active' : ''}`} onClick={() => setTimeframe('1M')}>1 Month</button>
+              </div>
+            </div>
+            <div style={{ height: 280, width: "100%" }}>
               <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={stats?.statusDistribution || []}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={90}
-                    paddingAngle={5}
-                    dataKey="value"
-                    stroke="none"
-                  >
-                    {(stats?.statusDistribution || []).map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip 
-                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 25px rgba(0,0,0,0.1)', fontWeight: 'bold' }}
+                <AreaChart data={currentTrendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="dbColorRegs" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#ff4d00" stopOpacity={0.35} />
+                      <stop offset="95%" stopColor="#ff4d00" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.06)" />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#3a3a50', fontSize: 11, fontWeight: 600 }} dy={8} minTickGap={20} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fill: '#3a3a50', fontSize: 11, fontWeight: 600 }} allowDecimals={false} />
+                  <Tooltip
+                    contentStyle={{ background: '#0d0d16', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 12, fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: 700 }}
+                    itemStyle={{ color: '#ff4d00' }}
+                    labelStyle={{ color: '#888898', marginBottom: 4 }}
+                    cursor={{ stroke: 'rgba(255,77,0,0.2)', strokeWidth: 1 }}
                   />
-                </PieChart>
+                  <Area type="monotone" dataKey="regs" name="Registrations" stroke="#ff4d00" strokeWidth={3} fillOpacity={1} fill="url(#dbColorRegs)" activeDot={{ r: 7, strokeWidth: 0, fill: '#ff4d00' }} />
+                </AreaChart>
               </ResponsiveContainer>
             </div>
-            
-            {/* Custom Legend */}
-            <div className="w-full mt-4 space-y-2">
-              {(stats?.statusDistribution || []).map((entry, index) => (
-                <div key={entry.name} className="flex justify-between items-center text-sm font-semibold">
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }}></div>
-                    <span className="text-gray-600">{entry.name}</span>
+          </div>
+
+          {/* Pie Chart */}
+          <div className="db-chart-card" style={{ display: "flex", flexDirection: "column" }}>
+            <div className="db-chart-title">Status Overview</div>
+            <div className="db-chart-sub">Approval distribution</div>
+            <div className="db-pie-wrap" style={{ flex: 1, position: "relative" }}>
+              <div style={{ height: 200, width: "100%" }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie data={stats?.statusDistribution || []} cx="50%" cy="50%" innerRadius={56} outerRadius={84} paddingAngle={4} dataKey="value" stroke="none">
+                      {(stats?.statusDistribution || []).map((_, i) => (
+                        <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      contentStyle={{ background: '#0d0d16', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 12, fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: 700 }}
+                      labelStyle={{ color: '#888898' }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="db-pie-center">
+                <div className="db-pie-total">{stats?.total || 0}</div>
+                <div className="db-pie-label">Total</div>
+              </div>
+            </div>
+            <div className="db-legend">
+              {(stats?.statusDistribution || []).map((entry, i) => (
+                <div key={entry.name} className="db-legend-row">
+                  <div className="db-legend-left">
+                    <div className="db-legend-dot" style={{ background: PIE_COLORS[i % PIE_COLORS.length] }} />
+                    <span className="db-legend-name">{entry.name}</span>
                   </div>
-                  <span className="text-gray-900">{entry.value}</span>
+                  <span className="db-legend-val">{entry.value}</span>
                 </div>
               ))}
             </div>
-
-            {/* Center Total */}
-            <div className="absolute top-[90px] left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none">
-              <p className="text-3xl font-black text-gray-800">{stats?.total || 0}</p>
-              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">Total</p>
-            </div>
           </div>
-        </div>
 
+        </div>
       </div>
-    </div>
+    </>
   );
 }
-
-const StatCard = ({ label, value, icon, accentColor, trend }) => (
-  <div
-    className="bg-white p-6 rounded-3xl relative overflow-hidden group transition-all duration-300 hover:-translate-y-1"
-    style={{
-      border: "1px solid #f3f4f6",
-      boxShadow: "0 8px 30px rgba(0, 0, 0, 0.03)",
-    }}
-  >
-    {/* Hover gradient background effect */}
-    <div 
-      className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
-      style={{ background: `radial-gradient(circle at top right, ${accentColor}10, transparent 60%)` }}
-    />
-
-    <div className="flex items-start justify-between mb-4 relative z-10">
-      <div
-        className="flex items-center justify-center rounded-2xl p-3 shadow-inner"
-        style={{
-          background: accentColor + "15",
-          color: accentColor,
-        }}
-      >
-        <div className="text-2xl">{icon}</div>
-      </div>
-      <div className="text-right">
-        <p className="text-[11px] uppercase font-bold tracking-widest text-gray-400 mb-1">
-          {label}
-        </p>
-        <p className="text-4xl font-black text-gray-800 tracking-tight">
-          {value}
-        </p>
-      </div>
-    </div>
-    
-    <div className="flex items-center gap-2 mt-4 pt-4 border-t border-gray-100 relative z-10">
-      <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: accentColor }}></div>
-      <p className="text-xs font-semibold text-gray-500">{trend}</p>
-    </div>
-
-    {/* Bottom Accent Bar */}
-    <div
-      className="absolute bottom-0 left-0 h-1 transition-all duration-300 group-hover:h-1.5"
-      style={{
-        width: "100%",
-        background: `linear-gradient(90deg, ${accentColor}, ${accentColor}80)`,
-      }}
-    />
-  </div>
-);
