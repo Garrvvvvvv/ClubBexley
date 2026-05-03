@@ -4,12 +4,12 @@
 
 | Service | What | Cost |
 |---|---|---|
-| **Vercel** | Frontend (React/Vite) | Free forever |
-| **EC2 t3.micro** | Backend (Express/Docker) | Free (year 1), ~$8/mo after |
+| **Vercel** | Frontend → `bexleytravels.com` | Free forever |
+| **EC2 t3.micro** | Backend → `api.bexleytravels.com` | Free (year 1), ~$8/mo after |
 | **Elastic IP** | Static IP for EC2 | Free while instance is running |
 | **MongoDB Atlas M0** | Database | Free |
 | **Cloudinary** | Images | Free |
-| **Let's Encrypt** | SSL for backend | Free |
+| **Let's Encrypt** | SSL for both subdomains | Free |
 | **Total year 1** | | **~$0/mo** |
 | **Total after year 1** | | **~$9/mo** |
 
@@ -19,42 +19,62 @@
 
 ```
 User
- ├── visits clubbexley.vercel.app  ──►  Vercel (React frontend, free)
- │
- └── API calls to EC2
-         │
-         ▼
-   EC2 t3.micro
-     └── Docker: arcevents-backend :5000
-               └── connects to MongoDB Atlas (cloud)
+ ├── bexleytravels.com        ──►  Vercel (React frontend)
+ ├── www.bexleytravels.com    ──►  Vercel (redirects to root)
+ └── api.bexleytravels.com    ──►  EC2 t3.micro → Docker :5000 → MongoDB Atlas
 ```
 
 ---
 
-## Part 1 — Deploy Frontend on Vercel (5 minutes)
+## Part 1 — Deploy Frontend on Vercel
 
 ### Step 1 — Push code to GitHub
 Make sure your repo is on GitHub. Vercel deploys from GitHub.
 
 ### Step 2 — Connect to Vercel
-1. Go to [vercel.com](https://vercel.com) → Sign up with GitHub
+1. Go to vercel.com → Sign up with GitHub
 2. Click **Add New Project** → Import your `ClubBexley` repo
 3. Set **Root Directory** to `Frontend`
 4. Vercel auto-detects Vite — no build config needed
 5. Under **Environment Variables**, add:
    ```
-   VITE_API_BASE_URL = https://<your-backend-url>
+   VITE_API_BASE_URL = https://api.bexleytravels.com
    VITE_GOOGLE_CLIENT_ID = your_frontend_google_client_id
    ```
-   > You'll fill in `VITE_API_BASE_URL` after the backend is deployed. For now you can put a placeholder and update it later.
 6. Click **Deploy**
 
-Vercel gives you a free URL like `clubbexley.vercel.app`. You can also connect a custom domain for free.
+Vercel gives you a temporary URL like `clubbexley.vercel.app` — we'll replace it with `bexleytravels.com` next.
 
-### Step 3 — Update Google OAuth
+### Step 3 — Connect bexleytravels.com to Vercel
+1. Vercel Dashboard → Your Project → **Settings → Domains**
+2. Click **Add Domain** → type `bexleytravels.com` → Add
+3. Add again → type `www.bexleytravels.com` → Add
+4. Vercel will show you DNS records to add — keep this tab open
+
+### Step 4 — Add DNS Records on Namecheap
+
+1. Log in to Namecheap → **Domain List** → click **Manage** next to `bexleytravels.com`
+2. Go to **Advanced DNS** tab
+3. Delete any existing A records or CNAME for `@` and `www`
+4. Add these records exactly:
+
+| Type | Host | Value | TTL |
+|---|---|---|---|
+| `A` | `@` | `76.76.21.21` | Automatic |
+| `CNAME` | `www` | `cname.vercel-dns.com` | Automatic |
+| `A` | `api` | `<YOUR-ELASTIC-IP>` | Automatic |
+
+> The `76.76.21.21` is Vercel's IP for root domains — Vercel shows this when you add the domain.
+> Replace `<YOUR-ELASTIC-IP>` with your actual EC2 Elastic IP.
+
+5. Click the green checkmark to save each record
+
+### Step 5 — Update Google OAuth
 1. Go to **Google Cloud Console → APIs & Services → Credentials**
 2. Edit your OAuth Client ID
-3. Add to **Authorized JavaScript origins:** `https://clubbexley.vercel.app`
+3. Add to **Authorized JavaScript origins:**
+   - `https://bexleytravels.com`
+   - `https://www.bexleytravels.com`
 4. Save
 
 ---
@@ -65,7 +85,7 @@ Vercel gives you a free URL like `clubbexley.vercel.app`. You can also connect a
 
 1. Go to **AWS EC2 → Launch Instance**
 2. Settings:
-   - **Name:** `clubbexley-backend`
+   - **Name:** `bexleytravels-backend`
    - **AMI:** Ubuntu 24.04 LTS — confirm it says **Free tier eligible**
    - **Instance type:** `t3.micro` — confirm it says **Free tier eligible**
    - **Key pair:** Create new → name it `clubbexley-key` → download `clubbexley-key.pem` → keep it safe, you cannot re-download it
@@ -79,7 +99,7 @@ Vercel gives you a free URL like `clubbexley.vercel.app`. You can also connect a
 ### Step 2 — Assign a Static IP
 1. Go to **EC2 → Elastic IPs → Allocate Elastic IP Address** → Allocate
 2. Select the new IP → **Actions → Associate** → select your instance
-3. Note this IP — this is your permanent backend IP
+3. Note this IP — use it as `<YOUR-ELASTIC-IP>` throughout this guide and in the Namecheap `api` A record above
 
 ### Step 3 — SSH Into the Server
 
@@ -105,7 +125,7 @@ newgrp docker
 # Install Nginx, Certbot, Git
 sudo apt install -y nginx certbot python3-certbot-nginx git
 
-# Add 1GB swap — prevents OOM-kill during Docker builds on t2.micro
+# Add 1GB swap — prevents OOM-kill during Docker builds on t3.micro
 sudo fallocate -l 1G /swapfile
 sudo chmod 600 /swapfile
 sudo mkswap /swapfile
@@ -131,8 +151,8 @@ scp -i ~/Downloads/clubbexley-key.pem -r \
 
 On the **EC2 instance**, generate secrets first:
 ```bash
-openssl rand -hex 64   # copy this → JWT_SECRET
-openssl rand -hex 64   # copy this → ADMIN_JWT_SECRET
+openssl rand -hex 64   # copy output → use as JWT_SECRET
+openssl rand -hex 64   # copy output → use as ADMIN_JWT_SECRET
 ```
 
 Then create the env file:
@@ -141,7 +161,7 @@ cat > ~/Backend/.env << 'EOF'
 PORT=5000
 NODE_ENV=production
 MONGO_URI=mongodb+srv://<user>:<password>@<cluster>.mongodb.net/<dbname>?retryWrites=true&w=majority
-ALLOWED_ORIGINS=https://clubbexley.vercel.app
+ALLOWED_ORIGINS=https://bexleytravels.com,https://www.bexleytravels.com
 TRUST_PROXY=true
 CLOUDINARY_CLOUD_NAME=your_cloud_name
 CLOUDINARY_API_KEY=your_api_key
@@ -163,27 +183,25 @@ cd ~/Backend
 # Build and start in one command
 docker compose up -d --build
 
-# Verify — both status should say "Up (healthy)" after ~30 seconds
+# Verify — should say "Up (healthy)" after ~30 seconds
 docker compose ps
 
 # Live logs
 docker compose logs -f
 ```
 
-That's it. Docker Compose reads `docker-compose.yml`, builds the image, and starts the container with all settings (port, env file, memory limit, healthcheck, restart policy) already configured.
-
-### Step 8 — Configure Nginx as Reverse Proxy
+### Step 8 — Configure Nginx for api.bexleytravels.com
 
 ```bash
-sudo nano /etc/nginx/sites-available/clubbexley
+sudo nano /etc/nginx/sites-available/bexleytravels-api
 ```
 
-Paste (replace `yourdomain.com` if you have a domain, otherwise leave `server_name _;`):
+Paste this exactly:
 
 ```nginx
 server {
     listen 80;
-    server_name _;
+    server_name api.bexleytravels.com;
 
     location / {
         proxy_pass http://localhost:5000;
@@ -199,24 +217,25 @@ server {
 ```
 
 ```bash
-sudo ln -s /etc/nginx/sites-available/clubbexley /etc/nginx/sites-enabled/
+sudo ln -s /etc/nginx/sites-available/bexleytravels-api /etc/nginx/sites-enabled/
 sudo rm -f /etc/nginx/sites-enabled/default
-sudo nginx -t
+sudo nginx -t                    # must say "syntax is ok"
 sudo systemctl restart nginx
 ```
 
-### Step 9 — (Optional) Enable HTTPS with a Domain
+### Step 9 — Enable HTTPS on api.bexleytravels.com
 
-If you have a domain pointed to your Elastic IP:
+> Wait until DNS has propagated first. Check with:
+> `nslookup api.bexleytravels.com` — it should return your Elastic IP before running certbot.
 
 ```bash
-sudo certbot --nginx -d yourdomain.com
+sudo certbot --nginx -d api.bexleytravels.com
+# When prompted: choose option 2 (redirect HTTP → HTTPS)
 ```
 
-Then update `ALLOWED_ORIGINS` in `.env` to `https://yourdomain.com` and restart:
+Certbot auto-renews every 90 days. Test renewal with:
 ```bash
-cd ~/Backend
-docker compose restart
+sudo certbot renew --dry-run
 ```
 
 ### Step 10 — Whitelist EC2 IP in MongoDB Atlas
@@ -225,23 +244,17 @@ docker compose restart
 2. Add: `<YOUR-ELASTIC-IP>/32`
 3. Save
 
-### Step 11 — Update Vercel with Backend URL
-
-1. Go to **Vercel → Your Project → Settings → Environment Variables**
-2. Update `VITE_API_BASE_URL` to `http://<YOUR-ELASTIC-IP>` (or `https://yourdomain.com` if you have SSL)
-3. Go to **Deployments → Redeploy** to rebuild with the new env var
-
-### Step 12 — Verify
+### Step 11 — Verify Everything
 
 ```bash
-# On the server
+# On the server — backend health check
 curl http://localhost:5000/health
 
-# From anywhere
-curl http://<YOUR-ELASTIC-IP>/health
+# From anywhere — should return JSON with status ok
+curl https://api.bexleytravels.com/health
 ```
 
-Open your Vercel URL in the browser — the site should fully work.
+Then open `https://bexleytravels.com` in a browser — the full site should load and API calls should work.
 
 ---
 
@@ -253,7 +266,7 @@ Push to GitHub — Vercel auto-deploys on every push to `main`. Done.
 ### Backend update
 
 ```bash
-# 1. Upload new code from local machine
+# 1. Upload new code from your local machine
 scp -i ~/Downloads/clubbexley-key.pem -r \
   /Users/rohandeep/Desktop/Garv/ClubBexley/Backend \
   ubuntu@<YOUR-ELASTIC-IP>:~/
@@ -262,8 +275,6 @@ scp -i ~/Downloads/clubbexley-key.pem -r \
 cd ~/Backend
 docker compose up -d --build
 ```
-
-Docker Compose stops the old container, rebuilds the image, and starts the new one automatically.
 
 ---
 
@@ -279,6 +290,7 @@ docker compose up -d --build       # rebuild and restart
 
 free -h                            # check memory usage
 sudo systemctl status nginx        # check nginx
+sudo nginx -t                      # test nginx config
 ```
 
 ---
@@ -287,20 +299,22 @@ sudo systemctl status nginx        # check nginx
 
 | Problem | Fix |
 |---|---|
-| Frontend can't reach API (CORS error) | `ALLOWED_ORIGINS` in `.env` must exactly match Vercel URL |
+| `bexleytravels.com` not loading | DNS not propagated yet — wait up to 48h, check with `nslookup bexleytravels.com` |
+| `api.bexleytravels.com` not reachable | Check `api` A record on Namecheap points to your Elastic IP |
+| Frontend CORS error | `ALLOWED_ORIGINS` in `.env` must be `https://bexleytravels.com,https://www.bexleytravels.com` |
 | Backend container keeps restarting | `docker compose logs` — bad env var or MongoDB connection error |
 | MongoDB connection refused | Elastic IP not whitelisted in Atlas Network Access |
 | `docker build` killed mid-way | Swap not set up — re-run Step 4 swap commands |
-| Google OAuth fails on Vercel | Vercel URL not added to Google OAuth authorized origins |
-| Vercel frontend uses old API URL | Redeploy after updating `VITE_API_BASE_URL` in Vercel env vars |
+| Google OAuth fails | `bexleytravels.com` not added to Google OAuth authorized origins |
+| Certbot fails | DNS not pointed to EC2 yet — `nslookup api.bexleytravels.com` must show Elastic IP first |
 
 ---
 
 ## Security Checklist
 
 - [ ] `Backend/.env` is in `.gitignore` — never commit real secrets
-- [ ] EC2 SSH restricted to your IP only
+- [ ] EC2 SSH restricted to your IP only in Security Group
 - [ ] Elastic IP whitelisted in MongoDB Atlas (not `0.0.0.0/0`)
-- [ ] `ALLOW_SEED=FALSE` in production
+- [ ] `ALLOW_SEED=FALSE` in production `.env`
 - [ ] JWT secrets are freshly generated (`openssl rand -hex 64`)
-- [ ] `ALLOWED_ORIGINS` set to your Vercel URL only
+- [ ] `ALLOWED_ORIGINS` set to `bexleytravels.com` only (not localhost)
