@@ -67,9 +67,11 @@ function App() {
                 <AdminEventProvider>
                   <AdminLayout>
                     <Routes>
+                      <Route path="dashboard" element={<AdminEvents />} />
+                      <Route path="dashboard/events" element={<AdminEvents />} />
                       <Route path="events" element={<AdminEvents />} />
                       <Route path="memories" element={<AdminMemories />} />
-                      <Route path="*" element={<Navigate to="events" replace />} />
+                      <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
                     </Routes>
                   </AdminLayout>
                 </AdminEventProvider>
