@@ -38,10 +38,10 @@ export async function login(req, res) {
       role: "ADMIN",
     },
     process.env.ADMIN_JWT_SECRET,
-    { expiresIn: "10m" }
+    { expiresIn: "24h" }
   );
 
-  // Log the login action (fire-and-forget)
+  // Log the login action (fire-and-fo  rget)
   logAdminAction({
     adminId: admin._id,
     adminName: admin.username,
