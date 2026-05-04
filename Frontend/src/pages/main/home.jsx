@@ -76,9 +76,9 @@ export default function Home() {
   const heroRef = useRef(null);
 
   /* counters */
-  const c1 = useCounter(200,  2200, statsOn);
-  const c2 = useCounter(50,   1900, statsOn);
-  const c3 = useCounter(5000, 2600, statsOn);
+  const c1 = useCounter(650,  2200, statsOn);
+  const c2 = useCounter(1000,   1900, statsOn);
+  const c3 = useCounter(5, 2600, statsOn);
 
   const DESTINATIONS = [
     "MANALI","KASOL","SPITI VALLEY","KEDARNATH","LADAKH",
@@ -420,9 +420,9 @@ export default function Home() {
         <div className="stats-word" aria-hidden>ADVENTURES</div>
         <div className="stats-grid">
           {[
-            { n: c1, suf: "+", label: "Trips Organised" },
-            { n: c2, suf: "+", label: "Destinations" },
-            { n: c3, suf: "+", label: "Community Members" },
+            { n: c1, suf: "+", label: "Members" },
+            { n: c2, suf: "+", label: "Reviews" },
+            { n: c3, suf: "M+", label: "Reach" },
           ].map((s, i) => (
             <div key={i} className="stat-item">
               <div className="stat-number">

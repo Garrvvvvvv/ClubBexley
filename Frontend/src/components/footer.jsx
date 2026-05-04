@@ -464,20 +464,17 @@ export default function Footer() {
             <div className="footer-contact-item">
               <div className="footer-contact-icon">✉️</div>
               <div className="footer-contact-text">
-                <a href="mailto:hello@clubbexley.com">hello@clubbexley.com</a>
+                <a href="mailto:clubbexley777@gmail.com">clubbexley777@gmail.com</a>
               </div>
             </div>
 
             <div style={{ marginTop: 20 }}>
               <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase', color: '#888898', marginBottom: 10 }}>Follow Along</p>
               <div className="footer-socials">
-                <a href="#" className="footer-social-btn" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+                <a href="https://www.instagram.com/bexley_travels?igsh=YWd1bGdwcnB6cmU0&utm_source=qr" className="footer-social-btn" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
                   <FaInstagram size={15} />
                 </a>
-                <a href="#" className="footer-social-btn" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
-                  <FaLinkedinIn size={15} />
-                </a>
-                <a href="#" className="footer-social-btn" target="_blank" rel="noopener noreferrer" aria-label="YouTube">
+                <a href="https://www.youtube.com/channel/UCPHEa1HMRdoDjCJAvbq0r9A" className="footer-social-btn" target="_blank" rel="noopener noreferrer" aria-label="YouTube">
                   <FaYoutube size={15} />
                 </a>
               </div>
