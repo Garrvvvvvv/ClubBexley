@@ -69,7 +69,7 @@ function TripSlide({ ev, index }) {
     : null;
 
   const badgeStatus = ev.status === "LIVE"
-    ? <span className="ts-status-live">● Live</span>
+    ? <span className="ts-status-live">Registeration Open</span>
     : ev.status === "PAUSED"
     ? <span className="ts-status-paused">⏸ Paused</span>
     : null;
