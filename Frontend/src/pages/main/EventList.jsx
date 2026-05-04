@@ -76,6 +76,7 @@ function TripSlide({ ev, index }) {
 
   return (
     <section ref={slideRef} className="ts-slide">
+
       {/* full-bleed background image with parallax */}
       <div className="ts-bg-wrap">
         {img
@@ -139,24 +140,20 @@ function TripSlide({ ev, index }) {
 
         {/* CTAs */}
         <div className="ts-ctas">
-          <Link to={`/event/${ev.slug}/register`} className="ts-btn-primary">
+          <a
+            href={ev.googleFormLink || "#"}
+            target={ev.googleFormLink ? "_blank" : undefined}
+            rel="noreferrer"
+            className="ts-btn-primary"
+            style={!ev.googleFormLink ? { opacity: 0.45, cursor: "not-allowed", pointerEvents: "none" } : {}}
+          >
             Register Now
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
               <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
-          </Link>
+          </a>
           <Link to={`/event/${ev.slug}`} className="ts-btn-ghost">
             Full Details
-          </Link>
-          <Link to={`/event/${ev.slug}/flow`} className="ts-btn-icon" title="Timeline">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <circle cx="4" cy="4" r="1.5" fill="currentColor"/>
-              <circle cx="4" cy="8" r="1.5" fill="currentColor"/>
-              <circle cx="4" cy="12" r="1.5" fill="currentColor"/>
-              <line x1="6.5" y1="4" x2="13" y2="4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-              <line x1="6.5" y1="8" x2="13" y2="8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-              <line x1="6.5" y1="12" x2="13" y2="12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-            </svg>
           </Link>
           <Link to={`/event/${ev.slug}/memories`} className="ts-btn-icon" title="Gallery">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">

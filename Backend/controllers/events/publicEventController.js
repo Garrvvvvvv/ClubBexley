@@ -12,7 +12,7 @@ export async function getEvents(req, res) {
     // If locked, return only the locked event
     if (req.isLocked && req.lockedEventId) {
       const event = await Event.findById(req.lockedEventId)
-        .select("name slug posterUrl status paid description");
+        .select("name slug posterUrl status paid description googleFormLink duration pickupDrop startingPrice type");
 
       if (!event) {
         return res.status(404).json({ message: "Locked event not found" });
@@ -28,7 +28,7 @@ export async function getEvents(req, res) {
       isHidden: false,
       isDeleted: false,
     })
-      .select("name slug posterUrl status paid description") // Lightweight selection
+      .select("name slug posterUrl status paid description googleFormLink duration pickupDrop startingPrice type")
       .sort({ createdAt: -1 });
 
     res.json(events);
