@@ -22,6 +22,7 @@ import eventRoutes from "./routes/event.routes.js";
 import publicImagesRoutes from "./routes/publicImages.routes.js";
 import adminAuthRoutes from "./routes/adminAuth.routes.js";
 import adminEventRoutes from "./routes/adminEvent.routes.js";
+import adminEventUploadRoutes from "./routes/adminEventUploads.routes.js";
 import adminEventScopedRoutes from "./routes/adminEventScoped.routes.js";
 import adminGlobalGalleryRoutes from "./routes/adminGlobalGallery.routes.js";
 
@@ -85,6 +86,7 @@ app.use("/api/images", publicImagesRoutes);
 // Admin
 app.use("/api/admin/auth", adminAuthRoutes);
 app.use("/api/admin/events", adminEventRoutes);
+app.use("/api/admin/events", adminEventUploadRoutes);
 app.use("/api/admin/images", adminGlobalGalleryRoutes);
 app.use("/api/admin", adminEventScopedRoutes);
 
