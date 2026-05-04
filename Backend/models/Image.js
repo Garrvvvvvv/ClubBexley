@@ -1,9 +1,10 @@
 import mongoose from "mongoose";
 
 export const IMAGE_CATEGORIES = [
+  "memories",
   "home_announcement",
-  "home_memories", 
-  "event_memories"    // new event-specific
+  "home_memories",
+  "event_memories"
 ];
 
 const ImageSchema = new mongoose.Schema(

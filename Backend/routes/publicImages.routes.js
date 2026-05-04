@@ -3,6 +3,16 @@ import Image from "../models/Image.js";
 
 const router = Router();
 
+// PUBLIC route to get all memories (no auth required)
+router.get("/public/memories", async (req, res) => {
+    try {
+        const images = await Image.find({ category: "memories" }).sort({ createdAt: -1 });
+        res.json(images);
+    } catch (err) {
+        res.status(500).json({ message: "Failed to load memories", error: err.message });
+    }
+});
+
 // PUBLIC route to get home page images (no auth required)
 router.get("/public/home-images", async (req, res) => {
     try {

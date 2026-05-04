@@ -7,21 +7,10 @@ const basePages = [
   { name: "Memories", path: "/memories" },
 ];
 
-function getAuthUser() {
-  try {
-    const raw = localStorage.getItem("app_auth");
-    const parsed = raw ? JSON.parse(raw) : null;
-    return parsed?.user || null;
-  } catch {
-    return null;
-  }
-}
-
 export default function Navbar() {
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const [scrolled,   setScrolled]   = React.useState(false);
-  const [user,       setUser]       = React.useState(() => getAuthUser());
   const scrollYRef = React.useRef(0);
 
   /* ── scroll shadow ── */
@@ -30,14 +19,6 @@ export default function Navbar() {
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
-
-  /* ── auth sync ── */
-  React.useEffect(() => {
-    const onStorage = (e) => { if (e.key === "app_auth") setUser(getAuthUser()); };
-    window.addEventListener("storage", onStorage);
-    return () => window.removeEventListener("storage", onStorage);
-  }, []);
-  React.useEffect(() => { setUser(getAuthUser()); }, [location.pathname]);
 
   /* ── scroll lock for mobile menu ── */
   React.useEffect(() => {
@@ -68,14 +49,6 @@ export default function Navbar() {
       document.body.style.width      = "";
     };
   }, [mobileOpen]);
-
-  const firstName = user?.name ? user.name.split(" ")[0] : null;
-
-  const logout = () => {
-    localStorage.removeItem("app_auth");
-    window.dispatchEvent(new Event("storage"));
-    window.location.href = "/";
-  };
 
   return (
     <>
@@ -189,64 +162,6 @@ export default function Navbar() {
           align-items: center;
           gap: 12px;
         }
-        @media (max-width: 767px) { .nav-right .nav-user-desktop { display: none; } }
-
-        .nav-user-desktop {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-        }
-        .nav-greeting {
-          font-size: 12px;
-          font-weight: 600;
-          color: #888898;
-          letter-spacing: 0.3px;
-        }
-        .nav-greeting strong {
-          color: #f0ece4;
-          margin-left: 3px;
-        }
-        .nav-logout-btn {
-          background: none;
-          border: 1px solid rgba(255,255,255,0.1);
-          color: #888898;
-          font-family: 'Plus Jakarta Sans', sans-serif;
-          font-size: 11px;
-          font-weight: 600;
-          letter-spacing: 1px;
-          text-transform: uppercase;
-          padding: 6px 14px;
-          border-radius: 8px;
-          cursor: pointer;
-          transition: all 0.2s ease;
-        }
-        .nav-logout-btn:hover {
-          color: #ff4d00;
-          border-color: rgba(255,77,0,0.4);
-          background: rgba(255,77,0,0.06);
-        }
-
-        .nav-login-btn {
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          background: linear-gradient(135deg, #ff5200, #ff7033);
-          color: #fff;
-          text-decoration: none;
-          font-family: 'Plus Jakarta Sans', sans-serif;
-          font-size: 12px;
-          font-weight: 700;
-          letter-spacing: 0.5px;
-          padding: 9px 20px;
-          border-radius: 9px;
-          transition: all 0.25s cubic-bezier(0.23,1,0.32,1);
-          box-shadow: 0 4px 18px rgba(255,77,0,0.3);
-        }
-        .nav-login-btn:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 8px 28px rgba(255,77,0,0.45);
-        }
-
         /* ── MOBILE BURGER ── */
         .nav-burger {
           display: none;
@@ -327,16 +242,7 @@ export default function Navbar() {
         .nav-drawer-bottom {
           margin-top: auto;
           padding-top: 24px;
-          display: flex;
-          flex-direction: column;
-          gap: 10px;
         }
-        .nav-drawer-greeting {
-          font-size: 13px;
-          color: #888898;
-          padding: 0 0 4px;
-        }
-        .nav-drawer-greeting strong { color: #f0ece4; }
       `}</style>
 
       {/* ── NAVBAR ── */}
@@ -365,26 +271,6 @@ export default function Navbar() {
 
           {/* Right side */}
           <div className="nav-right">
-            <div className="nav-user-desktop">
-              {user ? (
-                <>
-                  <span className="nav-greeting">
-                    Hey,<strong>{firstName}</strong>
-                  </span>
-                  <button className="nav-logout-btn" onClick={logout}>
-                    Logout
-                  </button>
-                </>
-              ) : (
-                <Link to="/login" className="nav-login-btn">
-                  Login
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                    <path d="M5 12h14M12 5l7 7-7 7"/>
-                  </svg>
-                </Link>
-              )}
-            </div>
-
             {/* Burger */}
             <button
               className={`nav-burger${mobileOpen ? " open" : ""}`}
@@ -414,21 +300,7 @@ export default function Navbar() {
           </Link>
         ))}
 
-        <div className="nav-drawer-bottom">
-          {user ? (
-            <>
-              <p className="nav-drawer-greeting">Logged in as <strong>{firstName}</strong></p>
-              <button className="nav-logout-btn" onClick={logout}>Logout</button>
-            </>
-          ) : (
-            <Link to="/login" className="nav-login-btn" onClick={() => setMobileOpen(false)}>
-              Login
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                <path d="M5 12h14M12 5l7 7-7 7"/>
-              </svg>
-            </Link>
-          )}
-        </div>
+        <div className="nav-drawer-bottom" />
       </div>
     </>
   );

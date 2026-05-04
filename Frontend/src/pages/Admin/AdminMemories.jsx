@@ -3,12 +3,12 @@ import { useAdminEvent } from "../../context/AdminEventContext";
 import { apiAdmin } from "../../lib/apiAdmin";
 import { compressImage } from "../../lib/imageUtils";
 import { toast } from "react-toastify";
-import { Image, Upload, Trash2, X, Camera, Globe, CheckCircle, Download, Loader } from "lucide-react";
+import { Image, Upload, Trash2, X, CheckCircle, Download, Loader } from "lucide-react";
 
-const TABS = { EVENT: "EVENT", GLOBAL: "GLOBAL" };
 const GLOBAL_CATS = {
+  memories: "Memories Gallery",
   home_announcement: "Announcements Carousel",
-  home_memories: "Memories Section",
+  home_memories: "Home Memories Section",
 };
 
 const S = `
@@ -239,13 +239,12 @@ const S = `
 
 export default function AdminMemories() {
   const { activeEvent } = useAdminEvent();
-  const [tab, setTab] = useState(TABS.EVENT);
   const [images, setImages] = useState([]);
   const [file, setFile] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(false);
   const [globalImages, setGlobalImages] = useState([]);
-  const [globalCat, setGlobalCat] = useState("home_announcement");
+  const [globalCat, setGlobalCat] = useState("memories");
   const [showImportModal, setShowImportModal] = useState(false);
   const [importEvents, setImportEvents] = useState([]);
   const [selectedEventId, setSelectedEventId] = useState("");
@@ -372,9 +371,8 @@ export default function AdminMemories() {
   };
 
   useEffect(() => {
-    if (tab === TABS.EVENT && activeEvent) loadEventPhotos();
-    else if (tab === TABS.GLOBAL) loadGlobalPhotos();
-  }, [tab, activeEvent, globalCat]);
+    loadGlobalPhotos();
+  }, [globalCat]);
 
   return (
     <>
@@ -385,59 +383,12 @@ export default function AdminMemories() {
         <div className="mm-header">
           <div>
             <h1><Image size={28} className="mm-header-icon" /> Gallery Manager</h1>
-            <p>Manage event memories and global website imagery.</p>
-          </div>
-          <div className="mm-tabs">
-            <button
-              className={`mm-tab ${tab === TABS.EVENT ? "mm-tab-active-orange" : "mm-tab-inactive"}`}
-              onClick={() => setTab(TABS.EVENT)}
-            >
-              <Camera size={14} /> Event Photos
-            </button>
-            <button
-              className={`mm-tab ${tab === TABS.GLOBAL ? "mm-tab-active-purple" : "mm-tab-inactive"}`}
-              onClick={() => setTab(TABS.GLOBAL)}
-            >
-              <Globe size={14} /> Global Assets
-            </button>
+            <p>Upload and manage photos shown across the website.</p>
           </div>
         </div>
 
-        {/* Event Tab */}
-        {tab === TABS.EVENT && (
-          !activeEvent ? (
-            <div className="mm-no-event">
-              <div className="mm-no-event-icon"><Camera size={28} /></div>
-              <p>Please select an event from the sidebar first.</p>
-            </div>
-          ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-              {/* Upload Bar */}
-              <div className="mm-upload-bar">
-                <div className="mm-upload-accent-line" />
-                <div style={{ flex: 1, paddingLeft: 16 }}>
-                  <label className="mm-upload-label">Upload to <em>{activeEvent.name}</em></label>
-                  <input id="event-upload" type="file" accept="image/*" onChange={e => setFile(e.target.files[0])} className="mm-file-input" />
-                </div>
-                <div style={{ display: "flex", alignItems: "center", gap: 12, flexShrink: 0 }}>
-                  <button className="mm-btn mm-btn-ghost" onClick={uploadEventPhoto} disabled={!file || uploading}>
-                    {uploading ? <Loader size={14} className="mm-spin" /> : <Upload size={14} />}
-                    {uploading ? "Uploading…" : "Upload Photo"}
-                  </button>
-                  <div className="mm-btn-divider" />
-                  <button className="mm-btn mm-btn-primary" onClick={openImportModal}>
-                    <Download size={14} /> Import Photos
-                  </button>
-                </div>
-              </div>
-              <GalleryGrid images={images} onDelete={deleteEventPhoto} loading={loading} />
-            </div>
-          )
-        )}
-
-        {/* Global Tab */}
-        {tab === TABS.GLOBAL && (
-          <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+        {/* Upload + Gallery */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
             <div className="mm-upload-bar mm-upload-bar-purple">
               <div className="mm-upload-accent-line" />
               <div style={{ paddingLeft: 16, display: "flex", gap: 28, flexWrap: "wrap", flex: 1 }}>
@@ -467,7 +418,6 @@ export default function AdminMemories() {
             </div>
             <GalleryGrid images={globalImages} onDelete={deleteGlobalPhoto} loading={loading} />
           </div>
-        )}
 
         {/* Import Modal */}
         {showImportModal && (

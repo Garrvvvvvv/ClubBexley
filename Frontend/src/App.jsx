@@ -8,7 +8,6 @@ import Home from "./pages/main/home";
 import EventList from "./pages/main/EventList";
 import EventFlow from "./pages/main/EventFlowpage.jsx";
 import PhotoGallery from "./pages/main/memories";
-import UserLogin from "./pages/main/userlogin";
 import Meetourteam from "./pages/main/meetourteam";
 import MeetOurDevelopers from "./pages/main/MeetOurDevelopers";
 import TripDetail from "./pages/main/TripDetail";
@@ -44,7 +43,6 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/home" element={<Home />} />
           <Route path="/events" element={<EventList />} />
-          <Route path="/login" element={<UserLogin />} />
           <Route path="/meetourteam" element={<Meetourteam />} />
           <Route path="/meetourdevelopers" element={<MeetOurDevelopers />} />
 

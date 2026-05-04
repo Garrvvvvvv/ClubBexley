@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { api } from "../../lib/api";
 
-const TAB_DAY   = "itinerary";
 const TAB_DATES = "dates";
 const TAB_INC   = "inclusions";
 
@@ -814,7 +813,7 @@ export default function TripDetail() {
   const [trip, setTrip]       = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError]     = useState(null);
-  const [activeTab, setActiveTab] = useState(TAB_DAY);
+  const [activeTab, setActiveTab] = useState(TAB_DATES);
 
   useEffect(() => {
     api
@@ -944,7 +943,6 @@ export default function TripDetail() {
             {/* TABS */}
             <div className="td-tabs">
               {[
-                { id: TAB_DAY,   label: "Day-Wise Plan" },
                 { id: TAB_DATES, label: "Dates & Costing" },
                 { id: TAB_INC,   label: "What's Included" },
               ].map((tab) => (
@@ -957,31 +955,6 @@ export default function TripDetail() {
                 </button>
               ))}
             </div>
-
-            {/* ── TAB: DAY WISE PLAN ── */}
-            {activeTab === TAB_DAY && (
-              <div>
-                {trip.itinerary?.length > 0 ? (
-                  <div className="td-timeline">
-                    <div className="td-timeline-line" />
-                    {trip.itinerary.map((day, i) => (
-                      <div key={i} className="td-timeline-item">
-                        <div className="td-timeline-dot">{day.dayNumber}</div>
-                        <div className="td-timeline-card">
-                          <div className="td-timeline-day-label">Day {day.dayNumber}</div>
-                          <h3 className="td-timeline-title">{day.title}</h3>
-                          {day.description && (
-                            <p className="td-timeline-desc">{day.description}</p>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="td-empty">Itinerary coming soon — check back shortly.</p>
-                )}
-              </div>
-            )}
 
             {/* ── TAB: DATES & COSTING ── */}
             {activeTab === TAB_DATES && (
@@ -1170,18 +1143,7 @@ export default function TripDetail() {
                 </div>
 
                 <div className="td-quick-links">
-                  <Link to={`/event/${eventSlug}/flow`} className="td-quick-link">
-                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-                      <circle cx="4" cy="4" r="1.5" fill="currentColor"/>
-                      <circle cx="4" cy="8" r="1.5" fill="currentColor"/>
-                      <circle cx="4" cy="12" r="1.5" fill="currentColor"/>
-                      <line x1="6.5" y1="4" x2="13" y2="4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-                      <line x1="6.5" y1="8" x2="13" y2="8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-                      <line x1="6.5" y1="12" x2="13" y2="12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-                    </svg>
-                    Timeline
-                  </Link>
-                  <Link to={`/event/${eventSlug}/memories`} className="td-quick-link">
+                  <Link to="/memories" className="td-quick-link">
                     <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
                       <rect x="1" y="3" width="14" height="10" rx="2" stroke="currentColor" strokeWidth="1.5"/>
                       <circle cx="5.5" cy="7" r="1.5" stroke="currentColor" strokeWidth="1.3"/>

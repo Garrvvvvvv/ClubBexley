@@ -68,8 +68,7 @@ const TEAM = [
     instagram: "#",
   },
   {
-    id: 6,
-    name: "Navroop",
+    id: 6,  
     name: "Tanishq",
     role: "Finance & Deals",
     tagline: "Epic adventures, surprisingly honest prices.",
