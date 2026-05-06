@@ -80,6 +80,19 @@ const TEAM = [
     instagram: "#",
   },
   {
+    id: 10,
+    name: "Ronit Bedi",
+    role: "Vibe creator",
+    tagline: "Always the last one to sleep and the first one to wake up.",
+    funFact: "Has a playlist for every mood and every mountain.",
+    image: "/assets/team/ronit.jpeg",
+    accent: "#38bdf8",
+    linkedin: "#",
+    github: "#",
+    instagram: "#",
+    
+  },
+  {
     id: 7,
     name: "Wisky",
     role: "Safety Officer",
@@ -110,7 +123,7 @@ const TEAM = [
     role: "Logistics Head",
     tagline: "Chaos is just a plan waiting to happen.",
     funFact: "Can set up camp in under 8 minutes flat.",
-    image: "/assets/team/IMG_7392.PNG",
+    image: "/assets/team/IMG_7626.JPG",
     accent: "#38bdf8",
     linkedin: "#",
     github: "#",
