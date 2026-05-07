@@ -4,6 +4,7 @@ import { api } from "../../lib/api";
 
 const TAB_DATES = "dates";
 const TAB_INC   = "inclusions";
+const TAB_DAY   = "itinerary";
 
 function cld(url, t = []) {
   if (!url || !url.includes("/upload/")) return url;
@@ -945,6 +946,7 @@ export default function TripDetail() {
               {[
                 { id: TAB_DATES, label: "Dates & Costing" },
                 { id: TAB_INC,   label: "What's Included" },
+                { id: TAB_DAY,   label: "Day-Wise Plan" },
               ].map((tab) => (
                 <button
                   key={tab.id}
@@ -1041,6 +1043,31 @@ export default function TripDetail() {
                     </ul>
                   ) : <p className="td-empty">Details coming soon.</p>}
                 </div>
+              </div>
+            )}
+
+            {/* ── TAB: DAY-WISE ITINERARY ── */}
+            {activeTab === TAB_DAY && (
+              <div>
+                {trip.itinerary?.length > 0 ? (
+                  <div className="td-timeline">
+                    <div className="td-timeline-line" />
+                    {trip.itinerary.map((day, i) => (
+                      <div key={i} className="td-timeline-item">
+                        <div className="td-timeline-dot">{day.dayNumber}</div>
+                        <div className="td-timeline-card">
+                          <div className="td-timeline-day-label">Day {day.dayNumber}</div>
+                          <h4 className="td-timeline-title">{day.title}</h4>
+                          {day.description && (
+                            <p className="td-timeline-desc">{day.description}</p>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="td-empty">Itinerary will be announced soon.</p>
+                )}
               </div>
             )}
 
