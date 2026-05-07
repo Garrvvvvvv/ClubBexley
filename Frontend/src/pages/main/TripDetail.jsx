@@ -34,6 +34,12 @@ const STYLES = `
     font-family: var(--font-body);
     min-height: 100vh;
     overflow-x: hidden;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .td-page *, .td-page *::before, .td-page *::after {
+    box-sizing: border-box;
   }
 
   /* ── HERO ── */
@@ -187,6 +193,8 @@ const STYLES = `
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    min-width: 0;
+    flex: 1;
   }
 
   .td-sticky-btn {
@@ -401,7 +409,7 @@ const STYLES = `
     border: 1px solid var(--border);
     border-radius: 12px;
     padding: 14px 20px;
-    min-width: 200px;
+    min-width: min(200px, 100%);
     transition: border-color 0.2s;
   }
 
@@ -804,6 +812,96 @@ const STYLES = `
   @keyframes tdFadeUp {
     from { opacity: 0; transform: translateY(24px); }
     to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ══════════════════════════════════
+     RESPONSIVE
+  ══════════════════════════════════ */
+
+  /* Tablet */
+  @media (max-width: 768px) {
+    .td-hero { min-height: 75vh; margin-top: -70px; }
+    .td-hero-content { padding: 84px 20px 36px; }
+    .td-hero-title { font-size: clamp(44px, 10vw, 80px); margin-bottom: 20px; }
+    .td-hero-stats { gap: 16px; }
+    .td-sticky { padding: 10px 20px; }
+    .td-sticky-name { font-size: 17px; }
+    .td-main { padding: 28px 20px 60px; gap: 28px; }
+    .td-description { font-size: 14px; }
+    .td-date-chip { min-width: min(200px, 100%); }
+    .td-book-card-price { font-size: 52px; }
+  }
+
+  /* Mobile */
+  @media (max-width: 480px) {
+    .td-hero { min-height: 68vh; margin-top: -60px; }
+    .td-hero-content { padding: 76px 16px 28px; }
+    .td-hero-title { font-size: clamp(36px, 11vw, 58px); margin-bottom: 16px; }
+    .td-hero-stats { gap: 12px; }
+    .td-hero-stat-icon { width: 30px; height: 30px; font-size: 13px; border-radius: 8px; }
+    .td-hero-stat-label { font-size: 9px; }
+    .td-hero-stat-value { font-size: 13px; }
+    .td-hero-stat-value.accent { font-size: 14px; }
+
+    .td-sticky { padding: 10px 16px; gap: 8px; flex-wrap: nowrap; }
+    .td-sticky-name { font-size: 14px; }
+    .td-sticky-btn { font-size: 11px; padding: 9px 14px; gap: 5px; border-radius: 8px; }
+
+    .td-main { padding: 20px 16px 52px; gap: 20px; }
+    .td-description { font-size: 13.5px; margin-bottom: 24px; max-width: 100%; }
+
+    .td-tab-btn { padding: 11px 12px; font-size: 10px; letter-spacing: 0.8px; }
+
+    .td-date-chips { flex-direction: column; }
+    .td-date-chip { min-width: 0; width: 100%; box-sizing: border-box; }
+    .td-date-chip-dates { font-size: 13px; }
+
+    .td-table-wrap { border-radius: 12px; }
+    .td-table th { padding: 11px 14px; font-size: 10px; letter-spacing: 1px; }
+    .td-table td { padding: 11px 14px; font-size: 13px; }
+    .td-table td:last-child { font-size: 14px; }
+
+    .td-inc-grid { grid-template-columns: 1fr; gap: 12px; }
+    .td-inc-item { font-size: 13px; }
+
+    .td-timeline { padding-left: 34px; }
+    .td-timeline-line { left: 11px; }
+    .td-timeline-dot { left: -34px; width: 22px; height: 22px; font-size: 10px; top: 14px; }
+    .td-timeline-card { padding: 14px 16px; border-radius: 12px; }
+    .td-timeline-title { font-size: 18px; }
+    .td-timeline-desc { font-size: 13px; }
+
+    .td-info-block { padding: 16px 16px; border-radius: 12px; }
+    .td-info-block-title { font-size: 11px; }
+    .td-info-block li { font-size: 13px; }
+    .td-info-block p { font-size: 13px; }
+
+    .td-book-card { border-radius: 16px; }
+    .td-book-card-header { padding: 20px 20px; }
+    .td-book-card-price { font-size: 42px; }
+    .td-book-card-body { padding: 16px 18px; }
+    .td-book-info-row { gap: 10px; padding: 9px 0; }
+    .td-book-info-icon { font-size: 14px; }
+    .td-book-info-label { font-size: 9px; }
+    .td-book-info-value { font-size: 12px; }
+    .td-book-cta { padding: 14px; font-size: 13px; border-radius: 10px; margin-bottom: 12px; }
+    .td-book-cta-disabled { padding: 14px; font-size: 13px; border-radius: 10px; margin-bottom: 12px; }
+    .td-trust-badges { gap: 6px; }
+    .td-trust-badge { font-size: 9px; padding: 4px 9px; }
+    .td-quick-links { gap: 8px; margin-top: 12px; }
+    .td-quick-link { font-size: 10px; padding: 9px 8px; border-radius: 8px; }
+
+    .td-section-label { font-size: 9px; letter-spacing: 2px; }
+  }
+
+  /* Very small phones */
+  @media (max-width: 360px) {
+    .td-hero-content { padding: 70px 12px 24px; }
+    .td-main { padding: 16px 12px 48px; }
+    .td-sticky { padding: 9px 12px; }
+    .td-sticky-name { font-size: 13px; }
+    .td-tab-btn { padding: 10px 9px; font-size: 9px; letter-spacing: 0.5px; }
+    .td-book-card-price { font-size: 36px; }
   }
 `;
 
